@@ -1,4 +1,4 @@
-﻿@model FamilyConnections.UI.Models.ConnectionViewModel
+﻿@model FamilyConnections.UI.Models.HomeViewModel
 
 
 @{
@@ -7,86 +7,97 @@
 
 <div>
 
-    <div>
-
-        <div>User:</div>
-
-        <div style="width:200px; border:solid 1px; display:inline-block">
+    @{
+        if (Model.CurrentPerson != null && Model.CurrentPerson.Id > -1)
+        {
             <div>
-                <input class="cube-part" asp-for="FullName" readonly="readonly" />
-            </div>
-            <div>
-                <input class="cube-part" asp-for="DateOfBirthStr" readonly="readonly" />
-            </div>
-            <div>
-                <input class="cube-part" asp-for="PlaceOfBirth" readonly="readonly" />
-            </div>
-        </div>
-    </div>
+                <div>Person:</div>
 
-    <br />
-    <hr class="dashed">
-
-    <div class="text-center">
-        <h1 class="display-4">Add yourself to the connections pool!</h1>
-        <p style="margin-top:15px">Connecting to one person is enough!</p>
-
-        <br />
-        <a style="border:solid 1px; padding:10px 50px 10px 50px; position:relative; top:5px; text-decoration:unset" asp-controller="Home" asp-action="Add">ADD</a>
-
-        <br />
-        <div style="margin-top:30px">OR SELECT</div>
-
-        <div>
-            <select asp-for="Id">
-                <option value="-1" selected="selected">-- Person --</option>
-                @* @foreach (var user in ViewData["users"] as List<SelectListItem>) *@
-                @foreach (var user in Model.AllUsers)
-                {
-                    <option value="@user.Value">@user.Text</option>
-                }
-            </select>
-            <div style="position:relative; top:5px">
-            AND <a class="text-center" style="display:inline-block; position:relative; text-decoration:unset" asp-controller="Home" asp-action="Enter">ENTER</a>
-            </div>
-        </div>
-
-
-
-        <br />
-        <hr class="dashed">
-
-        <div class="text-center">
-            <h1 class="display-4">Your connections</h1>
-
-            <div>
-
-                @foreach (var rel in Model.Connecions)
-                {
-                    <div style="width:200px; border:solid 1px; display:inline-block; margin-right:25px">
-                        <div>
-                            <input class="cube-part cube-bold" asp-for="@rel.Key.FullName" readonly="readonly" />
-                        </div>
-                        <div>
-                            <input class="cube-part" asp-for="@rel.Key.DateOfBirthStr" readonly="readonly" />
-                        </div>
-                        <div>
-                            <input class="cube-part" asp-for="@rel.Key.PlaceOfBirth" readonly="readonly" />
-                        </div>
-                        <div>
-                            <input class="cube-part cube-bold" asp-for="@rel.Value" readonly="readonly" />
-                        </div>
+                <div style="width:200px; border:solid 1px; display:inline-block">
+                    <div>
+                        <input class="cube-part" asp-for="@Model.CurrentPerson.FullName" readonly="readonly" />
                     </div>
-                }
+                    <div>
+                        <input class="cube-part" asp-for="@Model.CurrentPerson.DateOfBirthStr" readonly="readonly" />
+                    </div>
+                    <div>
+                        <input class="cube-part" asp-for="@Model.CurrentPerson.PlaceOfBirth" readonly="readonly" />
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <hr class="dashed">
+        }
+    }
+
+    @{
+        if (Model.CurrentPerson != null && Model.CurrentPerson.Id == -1)
+        {
+            <div class="text-center">
+                <h1 class="display-4">Add yourself to the connections pool!</h1>
+                <p style="margin-top:15px">Connecting to one person is enough!</p>
+
+                <br />
+                <a style="border:solid 1px; padding:10px 50px 10px 50px; position:relative; top:5px; text-decoration:unset" asp-controller="Home" asp-action="Add">ADD</a>
+
+                <br />
+                <div style="margin-top:30px">OR SELECT</div>
+
+                <div>
+                    <select asp-for="@Model.CurrentPerson.Id">
+                        <option value="-1" selected="selected">-- Person --</option>
+                        @foreach (var person in Model.AllPersons)
+                        {
+                            <option value="@person.Value">@person.Text</option>
+                        }
+                    </select>
+                    <div style="position:relative; top:5px">
+                        AND <a class="text-center" style="display:inline-block; position:relative; text-decoration:unset" asp-controller="Home" asp-action="Enter">ENTER</a>
+                    </div>
+                </div>
+
+                <br />
+                <hr class="dashed">
+            </div>
+        }
+    }
+
+    @{
+        if (Model.CurrentPerson != null && Model.CurrentPerson.Id > -1)
+        {
+            <div class="text-center">
+                <h1 class="display-4">Your connections</h1>
+
+                <div>
+
+                    @foreach (var rel in Model.CurrentPerson.Connections)
+                    {
+                        <div style="width:200px; border:solid 1px; display:inline-block; margin-right:25px">
+                            <div>
+                                <input class="cube-part cube-bold" asp-for="@rel.Key.FullName" readonly="readonly" />
+                            </div>
+                            <div>
+                                <input class="cube-part" asp-for="@rel.Key.DateOfBirthStr" readonly="readonly" />
+                            </div>
+                            <div>
+                                <input class="cube-part" asp-for="@rel.Key.PlaceOfBirth" readonly="readonly" />
+                            </div>
+                            <div>
+                                <input class="cube-part cube-bold" asp-for="@rel.Value" readonly="readonly" />
+                            </div>
+                        </div>
+                    }
+
+                </div>
 
             </div>
 
-        </div>
+            <br />
+            <hr class="dashed">
 
-        <br />
-        <hr class="dashed">
+        }
+    }
 
 
-
-    </div>
 </div>
