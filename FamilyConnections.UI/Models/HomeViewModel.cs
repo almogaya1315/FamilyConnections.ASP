@@ -5,15 +5,37 @@ namespace FamilyConnections.UI.Models
 {
     public class HomeViewModel
     {
-        public HomeViewModel(List<SelectListItem> persons = null, List<ConnectionViewModel> connections = null)
+        public HomeViewModel()
         {
-            AllPersons = persons ?? new List<SelectListItem>();
+                
+        }
+
+        public HomeViewModel(List<SelectListItem> personsItems = null, List<PersonViewModel> persons = null, List<ConnectionViewModel> connections = null)
+        {
+            AllPersonsItems = personsItems ?? new List<SelectListItem>();
+            AllPersons = persons ?? new List<PersonViewModel>();
             AllConnections = connections ?? new List<ConnectionViewModel>();
             CurrentPerson = new PersonViewModel();
         }
-        
-        public List<SelectListItem> AllPersons { get; set; }
+
+        public List<SelectListItem> AllPersonsItems { get; set; }
+        public List<PersonViewModel> AllPersons { get; set; }
         public List<ConnectionViewModel> AllConnections { get; set; }
+
+        //public SelectListItem CurrentPersonItem
+        //{
+        //    get
+        //    {
+        //        var personItem = new SelectListItem("", "-1");
+        //        if (CurrentPerson.Id > -1)
+        //            personItem = AllPersons.Find(p => p.Value == CurrentPerson.Id.ToString());
+        //        return personItem;
+        //    }
+        //    set
+        //    {
+        //        CurrentPersonItem = value;
+        //    }
+        //}
         public PersonViewModel CurrentPerson { get; set; }
 
         internal void SetCurrentConnections()

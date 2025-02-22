@@ -44,18 +44,21 @@
                 <br />
                 <div style="margin-top:30px">OR SELECT</div>
 
-                <div>
-                    <select asp-for="@Model.CurrentPerson.Id">
-                        <option value="-1" selected="selected">-- Person --</option>
-                        @foreach (var person in Model.AllPersons)
-                        {
-                            <option value="@person.Value">@person.Text</option>
-                        }
-                    </select>
-                    <div style="position:relative; top:5px">
-                        AND <a class="text-center" style="display:inline-block; position:relative; text-decoration:unset" asp-controller="Home" asp-action="Enter">ENTER</a>
+                <form asp-controller="Home" asp-action="Enter" asp method="post">
+                    <div>
+                        <select asp-for="CurrentPerson.Id" asp-items="@Model.AllPersonsItems" name="Id">
+                            <option value="-1" selected="selected">-- Person --</option>
+                        </select>
+                        <div style="position:relative; top:5px">
+                            AND <button type="submit" class="btn btn-link" style="display:inline-block; text-decoration:none; padding: 0px 0px 3px 0px;">
+                                ENTER
+                            </button>
+                        </div>
+
+                        <span asp-validation-for="CurrentPerson.Id" class="text-danger"></span>
+
                     </div>
-                </div>
+                </form>
 
                 <br />
                 <hr class="dashed">
