@@ -1,42 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using FamilyConnections.Core.Enums;
+using FamilyConnections.Core.Interfaces;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
 
 namespace FamilyConnections.UI.Models
 {
-    public class HomeViewModel
+    public class HomeViewModel : IHomePage
     {
         public HomeViewModel()
         {
                 
         }
 
-        public HomeViewModel(List<SelectListItem> personsItems = null, List<PersonViewModel> persons = null, List<ConnectionViewModel> connections = null)
+        public HomeViewModel(List<SelectListItem> personsItems = null, List<IPerson> persons = null, List<Core.Interfaces.IConnection> connections = null)
         {
             AllPersonsItems = personsItems ?? new List<SelectListItem>();
-            AllPersons = persons ?? new List<PersonViewModel>();
-            AllConnections = connections ?? new List<ConnectionViewModel>();
+            AllPersons = persons ?? new List<IPerson>();
+            AllConnections = connections ?? new List<Core.Interfaces.IConnection>();
             CurrentPerson = new PersonViewModel();
         }
 
         public List<SelectListItem> AllPersonsItems { get; set; }
-        public List<PersonViewModel> AllPersons { get; set; }
-        public List<ConnectionViewModel> AllConnections { get; set; }
+        public List<IPerson> AllPersons { get; set; }
+        public List<Core.Interfaces.IConnection> AllConnections { get; set; }
+        public IPerson CurrentPerson { get; set; }
 
-        //public SelectListItem CurrentPersonItem
-        //{
-        //    get
-        //    {
-        //        var personItem = new SelectListItem("", "-1");
-        //        if (CurrentPerson.Id > -1)
-        //            personItem = AllPersons.Find(p => p.Value == CurrentPerson.Id.ToString());
-        //        return personItem;
-        //    }
-        //    set
-        //    {
-        //        CurrentPersonItem = value;
-        //    }
-        //}
-        public PersonViewModel CurrentPerson { get; set; }
+        public void SetConnections()
+        {
+            var person1 = AllPersons[0];
+            var person2 = AllPersons[1];
+            var person3 = AllPersons[2];
+            var person4 = AllPersons[3];
+
+            AllConnections.Add(new ConnectionViewModel(person1, person2, eRel.Wife));
+            AllConnections.Add(new ConnectionViewModel(person1, person3, eRel.Daughter));
+            AllConnections.Add(new ConnectionViewModel(person1, person4, eRel.Daughter));
+
+            AllConnections.Add(new ConnectionViewModel(person2, person1, eRel.Husband));
+            AllConnections.Add(new ConnectionViewModel(person2, person3, eRel.Daughter));
+            AllConnections.Add(new ConnectionViewModel(person2, person4, eRel.Daughter));
+
+            AllConnections.Add(new ConnectionViewModel(person3, person1, eRel.Father));
+            AllConnections.Add(new ConnectionViewModel(person3, person2, eRel.Mother));
+            AllConnections.Add(new ConnectionViewModel(person3, person4, eRel.Sister));
+
+            AllConnections.Add(new ConnectionViewModel(person4, person1, eRel.Father));
+            AllConnections.Add(new ConnectionViewModel(person4, person2, eRel.Mother));
+            AllConnections.Add(new ConnectionViewModel(person4, person3, eRel.Sister));
+        }
 
         internal void SetCurrentConnections()
         {
@@ -45,63 +56,5 @@ namespace FamilyConnections.UI.Models
                 CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToDictionary(k => k.RelatedPerson, v => v.Relationship);
             }
         }
-    }
-
-    public class ConnectionViewModel
-    {
-        public ConnectionViewModel(PersonViewModel target, PersonViewModel related, eRel rel)
-        {
-            TargetPerson = target;
-            RelatedPerson = related;
-            Relationship = rel;
-        }
-
-        public PersonViewModel TargetPerson { get; set; }
-        public PersonViewModel RelatedPerson { get; set; }
-        public eRel Relationship { get; set; }
-    }
-
-    public class PersonViewModel
-    {
-        public PersonViewModel()
-        {
-            Id = -1;
-            Connections = new Dictionary<PersonViewModel, eRel>();
-        }
-
-        public int Id { get; set; }
-        public string FullName { get; set; }
-
-        public DateTime DateOfBirth;
-        public string DateOfBirthStr
-        {
-            get
-            {
-                return DateOfBirth.ToString("dd/MM/yyyy");
-            }
-            set
-            {
-                DateOfBirth = DateTime.Parse(value);
-            }
-        }
-        public string PlaceOfBirth { get; set; }
-        public Dictionary<PersonViewModel, eRel> Connections { get; set; }
-    }
-
-    public enum eRel
-    {
-        Mother,
-        Father,
-        Sister,
-        Brother,
-        Daughter,
-        Son,
-        Wife,
-        Husband,
-        Aunt,
-        Uncle,
-        Cousin,
-        Niece,
-        Nephew,
     }
 }
