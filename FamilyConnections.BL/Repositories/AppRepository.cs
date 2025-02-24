@@ -11,7 +11,7 @@ namespace FamilyConnections.BL.Repositories
 {
     public class AppRepository : RepositoryBase, IRepository
     {
-        public List<IPerson> GetPersons()
+        public List<PersonDTO> GetPersons()
         {
             var person1 = new PersonDTO
             {
@@ -42,7 +42,7 @@ namespace FamilyConnections.BL.Repositories
                 PlaceOfBirth = "Israel",
             };
 
-            return new List<IPerson> { person1, person2, person3, person4 };
+            return new List<PersonDTO> { person1, person2, person3, person4 };
         }
     }
 }

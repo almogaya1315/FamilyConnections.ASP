@@ -14,10 +14,7 @@ namespace FamilyConnections.BL.Handlers
     {
         public HttpContext Context { get; set; }
 
-        public HttpHandler(HttpContext context)
-        {
-            Context = context;
-        }
+        public HttpHandler() { }
 
         public bool SessionHasKey(eKeys key)
         {
@@ -26,14 +23,16 @@ namespace FamilyConnections.BL.Handlers
 
         public void SetToSession<T>(eKeys key, T value)
         {
-            Context.Session.Set(key.ToString(), Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(value)));
+            var json = JsonConvert.SerializeObject(value);
+            var bytes = Encoding.ASCII.GetBytes(json);
+            Context.Session.Set(key.ToString(), bytes);
         }
 
-        public T GetSessionValue<T>(eKeys key)  
+        public T GetSessionValue<T>(eKeys key) where T : class
         {
-            var sessionByte = Context.Session.Get(key.ToString());
-            var t = JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(sessionByte));
-            return t;
+            var bytes = Context.Session.Get(key.ToString());
+            var json = Encoding.ASCII.GetString(bytes);
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
         public bool CookiesHasKey(string key)
@@ -83,6 +82,12 @@ namespace FamilyConnections.BL.Handlers
                 currentChanged = true;
             }
             return currentChanged;
+        }
+
+        public void SetContext(HttpContext context)
+        {
+            //if (Context == null) 
+            Context = context;
         }
     }
 }

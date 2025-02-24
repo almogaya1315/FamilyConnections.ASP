@@ -15,10 +15,11 @@ namespace FamilyConnections.Core.Interfaces
         bool CookiesHasKey(string key);
         bool CurrentChanged(eKeys key, string currentId);
         string GetCookieValue(string key);
-        T GetSessionValue<T>(eKeys key);
+        T GetSessionValue<T>(eKeys key) where T : class;
         void RemoveSessionValue(string key);
         void ResetSessionValue(string key, object value);
         bool SessionHasKey(eKeys key);
+        void SetContext(HttpContext httpContext);
         void SetToCookie(string key, string currentId);
         void SetToSession<T>(eKeys key, T value);
     }

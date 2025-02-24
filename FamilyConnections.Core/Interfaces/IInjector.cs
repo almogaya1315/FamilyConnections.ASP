@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FamilyConnections.Core.Enums
+namespace FamilyConnections.Core.Interfaces
 {
-    public enum eKeys
+    public interface IInjector
     {
-        currentPerson,
-        allPersons
+        public T New<T>() where T : class, new();
     }
 }

@@ -1,19 +1,29 @@
 ﻿using FamilyConnections.Core.DTO;
 using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
+using FamilyConnections.UI.Converters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Text.Json.Serialization;
 
 namespace FamilyConnections.UI.Models
 {
-    public class PersonViewModel : IPerson
+    public class PersonViewModel //: IPerson //, IModelBinder
     {
         private PersonDTO _person;
+
+        public PersonDTO DTO()
+        {
+            return _person;
+        }
+
+        public PersonViewModel(PersonDTO personDTO)
+        {
+            _person = personDTO;
+        }
 
         public PersonViewModel()
         {
             _person = new PersonDTO();
-
-            //Id = -1;
-            //Connections = new Dictionary<IPerson, eRel>();
         }
 
         public int Id
@@ -39,13 +49,13 @@ namespace FamilyConnections.UI.Models
             }
         }
 
-        public DateTime DateOfBirth 
+        public DateTime DateOfBirth
         {
-            get 
+            get
             {
                 return _person.DateOfBirth;
             }
-            set 
+            set
             {
                 _person.DateOfBirth = value;
             }
@@ -61,27 +71,36 @@ namespace FamilyConnections.UI.Models
                 _person.DateOfBirthStr = value;
             }
         }
-        public string PlaceOfBirth 
+        public string PlaceOfBirth
         {
             get
             {
                 return _person.PlaceOfBirth;
             }
-            set 
+            set
             {
                 _person.PlaceOfBirth = value;
-            } 
+            }
         }
-        public Dictionary<IPerson, eRel> Connections 
+
+        //[JsonConverter(typeof(PersonViewModelDictionaryConverter))]
+        public Dictionary<PersonViewModel, eRel> Connections 
         {
-            get 
-            { 
-                return _person.Connections;
-            }
-            set 
+            get
             {
-                _person.Connections = value;
+                return _person.Connections.ToDictionary(k => new PersonViewModel(k.Key), v => v.Value);
+            }
+            set
+            {
+                _person.Connections = value.ToDictionary(k => k.Key.DTO(), v => v.Value);
             }
         }
+
+        //public Task BindModelAsync(ModelBindingContext bindingContext)
+        //{
+        //    var model = new PersonViewModel();
+        //    bindingContext.Result = ModelBindingResult.Success(model);
+        //    return Task.CompletedTask;
+        //}
     }
 }

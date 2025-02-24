@@ -1,29 +1,37 @@
 ﻿using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
+//using System.Web.Mvc;
+//using IConnection = FamilyConnections.Core.Interfaces.IConnection;
+using ModelBinderAttribute = Microsoft.AspNetCore.Mvc.ModelBinderAttribute;
 
 namespace FamilyConnections.UI.Models
 {
-    public class HomeViewModel : IHomePage
+    public class HomeViewModel //: IHomePage
     {
         public HomeViewModel()
         {
                 
         }
 
-        public HomeViewModel(List<SelectListItem> personsItems = null, List<IPerson> persons = null, List<Core.Interfaces.IConnection> connections = null)
+        public HomeViewModel(List<SelectListItem> personsItems = null, List<PersonViewModel> persons = null, List<ConnectionViewModel> connections = null)
         {
             AllPersonsItems = personsItems ?? new List<SelectListItem>();
-            AllPersons = persons ?? new List<IPerson>();
-            AllConnections = connections ?? new List<Core.Interfaces.IConnection>();
+            AllPersons = persons ?? new List<PersonViewModel>();
+            AllConnections = connections ?? new List<ConnectionViewModel>();
             CurrentPerson = new PersonViewModel();
+            SetConnections();
         }
 
         public List<SelectListItem> AllPersonsItems { get; set; }
-        public List<IPerson> AllPersons { get; set; }
-        public List<Core.Interfaces.IConnection> AllConnections { get; set; }
-        public IPerson CurrentPerson { get; set; }
+
+        public List<PersonViewModel> AllPersons { get; set; }
+        public List<ConnectionViewModel> AllConnections { get; set; }
+
+        //[ModelBinder(BinderType = typeof(PersonViewModel))]
+        public PersonViewModel CurrentPerson { get; set; }
 
         public void SetConnections()
         {

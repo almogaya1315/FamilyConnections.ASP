@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace FamilyConnections.Core.Interfaces
 {
-    public interface IHomePage
-    {
-        public List<SelectListItem> AllPersonsItems { get; set; }
-        public List<IPerson> AllPersons { get; set; }
-        public List<IConnection> AllConnections { get; set; }
-        public IPerson CurrentPerson { get; set; }
-    }
+    //public interface IHomePage
+    //{
+    //    public List<SelectListItem> AllPersonsItems { get; set; }
+    //    public List<IPerson> AllPersons { get; set; }
+    //    public List<IConnection> AllConnections { get; set; }
+    //    public IPerson CurrentPerson { get; set; }
+    //}
 }

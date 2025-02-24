@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FamilyConnections.Core.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace FamilyConnections.Core.Interfaces
 {
     public interface IRepository
     {
-        public List<IPerson> GetPersons();
+        public List<PersonDTO> GetPersons();
     }
 }

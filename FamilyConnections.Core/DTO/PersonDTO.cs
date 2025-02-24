@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace FamilyConnections.Core.DTO
 {
-    public class PersonDTO : IPerson
+    public class PersonDTO //: IPerson
     {
         public PersonDTO()
         {
             Id = -1;
-            Connections = new Dictionary<IPerson, eRel>();
+            Connections = new Dictionary<PersonDTO, eRel>();
         }
 
         public int Id { get; set; }
@@ -32,6 +32,6 @@ namespace FamilyConnections.Core.DTO
             }
         }
         public string PlaceOfBirth { get; set; }
-        public Dictionary<IPerson, eRel> Connections { get; set; }
+        public Dictionary<PersonDTO, eRel> Connections { get; set; }
     }
 }

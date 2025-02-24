@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace FamilyConnections.Core.Interfaces
 {
-    public interface IConnection
-    {
-        public IPerson TargetPerson { get; set; }
-        public IPerson RelatedPerson { get; set; }
-        public eRel Relationship { get; set; }
-    }
+    //public interface IConnection
+    //{
+    //    public IPerson TargetPerson { get; set; }
+    //    public IPerson RelatedPerson { get; set; }
+    //    public eRel Relationship { get; set; }
+    //}
 }
