@@ -1,6 +1,7 @@
 ﻿using FamilyConnections.Core.Bases;
 using FamilyConnections.Core.DTO;
 using FamilyConnections.Core.Interfaces;
+using FamilyConnections.DAL.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,38 +12,36 @@ namespace FamilyConnections.BL.Repositories
 {
     public class AppRepository : RepositoryBase, IRepository
     {
+        private readonly FamConnContext _context;
+
+        public AppRepository()
+        {
+            _context = new FamConnContext();
+        }
+
         public List<PersonDTO> GetPersons()
         {
-            var person1 = new PersonDTO
-            {
-                Id = 1,
-                FullName = "Lior Matsliah",
-                DateOfBirth = new DateTime(1985, 5, 23),
-                PlaceOfBirth = "Israel",
-            };
-            var person2 = new PersonDTO
-            {
-                Id = 2,
-                FullName = "Keren Matsliah",
-                DateOfBirth = new DateTime(1984, 2, 5),
-                PlaceOfBirth = "Israel",
-            };
-            var person3 = new PersonDTO
-            {
-                Id = 3,
-                FullName = "Gaya Matsliah",
-                DateOfBirth = new DateTime(2013, 6, 6),
-                PlaceOfBirth = "Israel",
-            };
-            var person4 = new PersonDTO
-            {
-                Id = 4,
-                FullName = "Almog Matsliah",
-                DateOfBirth = new DateTime(2015, 3, 26),
-                PlaceOfBirth = "Israel",
-            };
+            return _context.GetPersons();
+        }
 
-            return new List<PersonDTO> { person1, person2, person3, person4 };
+        public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null)
+        {
+            return _context.GetConnections(allPersons);
+        }
+
+        public void AddConnections(List<ConnectionDTO> newConnections)
+        {
+            
+        }
+
+        public void AddConnection(ConnectionDTO newConnection)
+        {
+            
+        }
+
+        public void AddPerson(PersonDTO newPerson)
+        {
+            
         }
     }
 }

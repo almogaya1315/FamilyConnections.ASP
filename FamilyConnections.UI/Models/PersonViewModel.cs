@@ -11,11 +11,23 @@ namespace FamilyConnections.UI.Models
     {
         private PersonDTO _person;
 
-        public PersonDTO DTO()
+        public PersonDTO DTO
         {
-            return _person;
+            get
+            {
+                return _person;
+            }
         }
 
+        public PersonViewModel(PersonViewModel vm)
+        {
+            _person = new PersonDTO
+            {
+                FullName = vm.FullName,
+                DateOfBirth = vm.DateOfBirth,
+                PlaceOfBirth = vm.PlaceOfBirth,
+            };
+        }
         public PersonViewModel(PersonDTO personDTO)
         {
             _person = personDTO;
@@ -49,7 +61,7 @@ namespace FamilyConnections.UI.Models
             }
         }
 
-        public DateTime DateOfBirth
+        public DateTime? DateOfBirth
         {
             get
             {
@@ -57,7 +69,7 @@ namespace FamilyConnections.UI.Models
             }
             set
             {
-                _person.DateOfBirth = value;
+                _person.DateOfBirth = value.GetValueOrDefault();
             }
         }
         public string DateOfBirthStr
@@ -92,7 +104,7 @@ namespace FamilyConnections.UI.Models
             }
             set
             {
-                _person.Connections = value.ToDictionary(k => k.Key.DTO(), v => v.Value);
+                _person.Connections = value.ToDictionary(k => k.Key.DTO, v => v.Value);
             }
         }
 

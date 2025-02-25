@@ -8,26 +8,26 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="TargetPerson.FullName" class="control-label">Full Name</label>
-                <input asp-for="TargetPerson.FullName" class="form-control" @* name="CurrentConnection.TargetPerson.FullName" *@ />
-                <span asp-validation-for="TargetPerson.FullName" class="text-danger"></span>
+                <input asp-for="TargetPerson.FullName" class="form-control" data-val-required="Required!" @* name="CurrentConnection.TargetPerson.FullName" *@ />
+                <span id="TargetPerson_FullName-error" asp-validation-for="TargetPerson.FullName" class="text-danger"></span>
             </div>
-            <br/>
+            <br />
             <div class="form-group">
                 <label asp-for="TargetPerson.DateOfBirth" class="control-label">Date of Birth</label>
                 <input asp-for="TargetPerson.DateOfBirth" class="form-control" @* name="CurrentConnection.TargetPerson.DateOfBirth" *@ />
                 <span asp-validation-for="TargetPerson.DateOfBirth" class="text-danger"></span>
             </div>
-            <br/>
+            <br />
             <div class="form-group">
                 <label asp-for="TargetPerson.PlaceOfBirth" class="control-label">Place of Birth</label>
                 <select class="form-select-bordered" asp-for="TargetPerson.PlaceOfBirth" asp-items="ViewBag.Countries" @* name="CurrentConnection.TargetPerson.PlaceOfBirth" *@>
                     <option value="-1" selected="selected">-- Country --</option>
                 </select>
-                <span asp-validation-for="TargetPerson.PlaceOfBirth" class="text-danger"></span>
+                <span id="TargetPerson_PlaceOfBirth-error" asp-validation-for="TargetPerson.PlaceOfBirth" class="text-danger"></span>
             </div>
             <br />
             <div class="form-group">
-                <label style="display:block" asp-for="RelatedPerson.Id" class="control-label">Connecting to..</label>
+                <label style="display:block" asp-for="RelatedPerson.Id" class="control-label">Connecting to....</label>
                 <select class="form-select-bordered" asp-for="RelatedPerson.Id" asp-items="ViewBag.AllPersonsItems" @* name="CurrentConnection.RelatedPerson.Id" *@>
                     <option value="-1" selected="selected">-- Person --</option>
                 </select>
@@ -35,15 +35,17 @@
             </div>
             <br />
             <div class="form-group">
-                <label style="display:block" asp-for="Relationship" class="control-label">As..</label>
-                <select class="form-select-bordered" asp-for="Relationship" asp-items="ViewBag.Relationships" @* name="CurrentConnection.Relationship" *@>
+                <label style="display:block" asp-for="Relationship.Id" class="control-label">As....</label>
+                <select class="form-select-bordered" asp-for="Relationship.Id" asp-items="ViewBag.Relationships"
+                @* data-val-required="Required!" data-val="true" *@ @* name="CurrentConnection.Relationship" *@>
                     <option value="-1" selected="selected">-- Relationship --</option>
                 </select>
-                <span asp-validation-for="Relationship" class="text-danger"></span>
+                <span asp-validation-for="Relationship.Id" data-valmsg-replace="false" class="text-danger"></span>
             </div>
             <br />
+            <hr style="width:315%"/>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Connect" class="btn btn-primary" />
             </div>
             <br />
         </form>
@@ -51,9 +53,25 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Back</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            var fullNameValidation = $('#TargetPerson_FullName-error');
+            if (fullNameValidation.html().trim() !== "") {
+                fullNameValidation.html("");
+            }
+            // var fullNameValidation = $('#TargetPerson_PlaceOfBirth-error');
+            // if (fullNameValidation.html().trim() !== "") {
+            //     fullNameValidation.html("");
+            // }
+        });
+    </script>
+
 }

@@ -49,7 +49,8 @@ public class HomeController : Controller
             var personsDTO = _appRepo.GetPersons();
             var personsSelect = personsDTO.Select(u => new SelectListItem(u.FullName, u.Id.ToString())).ToList();
             var personsVm = personsDTO.Select(p => new PersonViewModel(p)).ToList();
-            homePage = new HomeViewModel(personsSelect, personsVm);
+            var connectionsVm = _appRepo.GetConnections(personsDTO).Select(c => new ConnectionViewModel(c)).ToList();
+            homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
             // Set the allPersons cache to the session
             _httpHandler.SetToSession(eKeys.allPersons, homePage.AllPersons);
         }
@@ -118,7 +119,7 @@ public class HomeController : Controller
             ViewData[key] = null;
             var homePage = GetHomeVm();
             homePage.CurrentPerson = new PersonViewModel();
-            return View("Index", homePage);
+            return RedirectToAction("Index", homePage);
         }
         catch (Exception e)
         {
@@ -159,7 +160,7 @@ public class HomeController : Controller
                 }
             }
 
-            return View("Index", homePage);
+            return RedirectToAction("Index", homePage);
         }
         catch (Exception e)
         {
@@ -168,20 +169,94 @@ public class HomeController : Controller
         }
     }
 
+    private bool ValidateParameters(ConnectionViewModel newConnection)
+    {
+        // FullName is a text input, UI validated element -> asp-validation-for="TargetPerson.."
+        // Continue if UI-validated parameters are valid
+        // The code flow will not get here if its not valid, because it gets validated in client side JS
+        var UIvalidated = !string.IsNullOrWhiteSpace(newConnection.TargetPerson.FullName);
+
+        var req = "Required!";
+        if (!newConnection.TargetPerson.DateOfBirth.HasValue || newConnection.TargetPerson.DateOfBirth == default(DateTime))
+        {
+            ModelState.AddModelError("TargetPerson.DateOfBirth", req);
+        }
+        if (newConnection.TargetPerson.PlaceOfBirth == "-1")
+        {
+            ModelState.AddModelError("TargetPerson.PlaceOfBirth", req);
+        }
+        if (newConnection.RelatedPerson.Id == -1)
+        {
+            ModelState.AddModelError("RelatedPerson.Id", req);
+        }
+        if (newConnection.Relationship.Id == -1)
+        {
+            ModelState.AddModelError("Relationship.Id", req);
+        }
+
+        // unnecessary keys in the model state, at this point, that make the model invalid,
+        // because they are not populated yet, from the related id
+        ModelState.Remove("RelatedPerson.FullName");
+        ModelState.Remove("RelatedPerson.PlaceOfBirth");
+
+        return UIvalidated && ModelState.IsValid;
+    }
+
+    public IActionResult GoToAdd()
+    {
+        // MUST
+        _httpHandler.SetContext(HttpContext);
+        var homePage = GetHomeVm();
+
+        PopulateViewBags(homePage);
+        return View("Add", homePage.CurrentConnection);
+    }
+
+    private void PopulateViewBags(HomeViewModel homePage)
+    {
+        ViewBag.Countries = homePage.Countries;
+        ViewBag.AllPersonsItems = homePage.AllPersonsItems;
+        ViewBag.Relationships = homePage.Relationships;
+    }
+
+    private void UpdatePersistency(HomeViewModel homePage, PersonViewModel newPerson, ConnectionViewModel newConnection)
+    {
+        homePage.AllPersons.Add(newPerson);
+        _appRepo.AddPerson(newPerson.DTO);
+
+        homePage.AllConnections.Add(newConnection);
+        _appRepo.AddConnection(newConnection.DTO);
+
+        var newConnections = homePage.CheckAllConnections();
+        _appRepo.AddConnections(newConnections.Select(c => c.DTO).ToList());
+    }
+
     public IActionResult Add(ConnectionViewModel newConnection)
     {
         try
         {
             // MUST
             _httpHandler.SetContext(HttpContext);
-
             var homePage = GetHomeVm();
 
-            ViewBag.Countries = homePage.Countries;
-            ViewBag.AllPersonsItems = homePage.AllPersonsItems;
-            ViewBag.Relationships = homePage.Relationships;
+            if (ValidateParameters(newConnection))
+            {
+                var newPerson = new PersonViewModel(newConnection.TargetPerson);
+                newPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
 
-            return View(homePage.CurrentConnection);
+                UpdatePersistency(homePage, newPerson, newConnection);
+
+                ViewData["currentPerson"] = homePage.CurrentPerson = newPerson;
+                homePage.SetCurrentConnections();
+                _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
+
+                return RedirectToAction("Index", homePage);
+            }
+            else
+            {
+                PopulateViewBags(homePage);
+                return View(homePage.CurrentConnection);
+            }
         }
         catch (Exception e)
         {

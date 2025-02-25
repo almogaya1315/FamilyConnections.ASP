@@ -19,12 +19,12 @@ namespace FamilyConnections.Core.DTO
         public int Id { get; set; }
         public string FullName { get; set; }
 
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public string DateOfBirthStr
         {
             get
             {
-                return DateOfBirth.ToString("dd/MM/yyyy");
+                return DateOfBirth.GetValueOrDefault().ToString("dd/MM/yyyy");
             }
             set
             {
