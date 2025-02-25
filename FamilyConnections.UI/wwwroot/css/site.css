@@ -30,3 +30,9 @@ body {
     font-weight: bold;
     width: 195px;
 }
+/*ConnectionCubePart*/
+.form-select-bordered {
+    border-color: rgb(206, 212, 218);
+    width: 416px;
+    height: 38px
+}

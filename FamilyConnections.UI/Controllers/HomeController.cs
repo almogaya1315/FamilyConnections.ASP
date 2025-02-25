@@ -168,25 +168,20 @@ public class HomeController : Controller
         }
     }
 
-    public IActionResult Add()
+    public IActionResult Add(ConnectionViewModel newConnection)
     {
         try
         {
-
-
-
             // MUST
             _httpHandler.SetContext(HttpContext);
 
-            //if (ModelState.IsValid)
-            //{
+            var homePage = GetHomeVm();
 
+            ViewBag.Countries = homePage.Countries;
+            ViewBag.AllPersonsItems = homePage.AllPersonsItems;
+            ViewBag.Relationships = homePage.Relationships;
 
-
-            //    return View("Index");
-            //}
-
-            return View();
+            return View(homePage.CurrentConnection);
         }
         catch (Exception e)
         {

@@ -1,5 +1,6 @@
 ﻿using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
+using FamilyConnections.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
@@ -22,9 +23,14 @@ namespace FamilyConnections.UI.Models
             AllPersons = persons ?? new List<PersonViewModel>();
             AllConnections = connections ?? new List<ConnectionViewModel>();
             CurrentPerson = new PersonViewModel();
+            CurrentConnection = new ConnectionViewModel();
             SetConnections();
+            Countries = new List<SelectListItem> { new SelectListItem("Israel", "1") };
+            Relationships = EnumManager.GetRelationships();
         }
 
+        public List<SelectListItem> Countries { get; set; }
+        public List<SelectListItem> Relationships { get; set; }
         public List<SelectListItem> AllPersonsItems { get; set; }
 
         public List<PersonViewModel> AllPersons { get; set; }
@@ -32,6 +38,7 @@ namespace FamilyConnections.UI.Models
 
         //[ModelBinder(BinderType = typeof(PersonViewModel))]
         public PersonViewModel CurrentPerson { get; set; }
+        public ConnectionViewModel CurrentConnection { get; set; }
 
         public void SetConnections()
         {
@@ -61,7 +68,7 @@ namespace FamilyConnections.UI.Models
         {
             if (CurrentPerson != null)
             {
-                CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToDictionary(k => k.RelatedPerson, v => v.Relationship);
+                CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToDictionary(k => k.RelatedPerson, v => v.Relationship.Value);
             }
         }
     }
