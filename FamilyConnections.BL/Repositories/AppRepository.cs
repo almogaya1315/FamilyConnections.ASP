@@ -29,19 +29,14 @@ namespace FamilyConnections.BL.Repositories
             return _context.GetConnections(allPersons);
         }
 
-        public void AddConnections(List<ConnectionDTO> newConnections)
+        public void AddConnections(params ConnectionDTO[] newConnections)
         {
-            
-        }
-
-        public void AddConnection(ConnectionDTO newConnection)
-        {
-            
+            _context.AddConnections(newConnections);
         }
 
         public void AddPerson(PersonDTO newPerson)
         {
-            
+            _context.AddPerson(newPerson);
         }
     }
 }

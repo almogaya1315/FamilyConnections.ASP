@@ -1,4 +1,5 @@
-﻿using FamilyConnections.Core.Enums;
+﻿using FamilyConnections.Core.DTO;
+using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.Core.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -40,9 +41,12 @@ namespace FamilyConnections.UI.Models
         public PersonViewModel CurrentPerson { get; set; }
         public ConnectionViewModel CurrentConnection { get; set; }
 
-        internal List<ConnectionViewModel> CheckAllConnections()
+        internal ConnectionDTO[] CheckAllConnections()
         {
-            return null;
+            var newConnections = new List<ConnectionDTO>();
+
+
+            return newConnections.ToArray();
         }
 
         internal void SetCurrentConnections()

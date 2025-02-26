@@ -225,10 +225,10 @@ public class HomeController : Controller
         _appRepo.AddPerson(newPerson.DTO);
 
         homePage.AllConnections.Add(newConnection);
-        _appRepo.AddConnection(newConnection.DTO);
+        _appRepo.AddConnections(newConnection.DTO);
 
         var newConnections = homePage.CheckAllConnections();
-        _appRepo.AddConnections(newConnections.Select(c => c.DTO).ToList());
+        _appRepo.AddConnections(newConnections);
     }
 
     public IActionResult Add(ConnectionViewModel newConnection)

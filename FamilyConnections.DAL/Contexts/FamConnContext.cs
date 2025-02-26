@@ -14,6 +14,8 @@ namespace FamilyConnections.DAL.Contexts
         private const string AllConnectionsPath = "..\\FamilyConnections.DAL\\Files\\AllConnections.txt";
         private const string AllPersonsPath = "..\\FamilyConnections.DAL\\Files\\AllPersons.txt";
 
+
+
         public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null)
         {
             if (allPersons == null) allPersons = GetPersons();
@@ -115,6 +117,23 @@ namespace FamilyConnections.DAL.Contexts
             //File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person4) });
 
             //return new List<PersonDTO> { person1, person2, person3, person4 };
+        }
+
+        public void AddPerson(PersonDTO newPerson)
+        {
+            File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(newPerson) });
+
+            //var persons = GetPersons();
+            //persons.Add(newPerson);
+            //File.WriteAllText(AllPersonsPath, string.Empty);
+            //foreach (var person in persons)
+            //    File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person) });
+        }
+
+        public void AddConnections(ConnectionDTO[] newConnections)
+        {
+            foreach (var conn in newConnections)
+                File.AppendAllLines(AllConnectionsPath, new List<string> { JsonConvert.SerializeObject(conn.Flat) });
         }
     }
 }

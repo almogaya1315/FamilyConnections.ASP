@@ -9,8 +9,7 @@ namespace FamilyConnections.Core.Interfaces
 {
     public interface IRepository
     {
-        void AddConnections(List<ConnectionDTO> newConnections);
-        void AddConnection(ConnectionDTO newConnection);
+        void AddConnections(params ConnectionDTO[] newConnections);
         void AddPerson(PersonDTO newPerson);
         public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null);
         public List<PersonDTO> GetPersons();
