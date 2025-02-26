@@ -4,8 +4,9 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Add">
+        <form asp-action="Add" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <span asp-validation-for="Relationship.Error" class="text-danger"></span>
             <div class="form-group">
                 <label asp-for="TargetPerson.FullName" class="control-label">Full Name</label>
                 <input asp-for="TargetPerson.FullName" class="form-control" data-val-required="Required!" @* name="CurrentConnection.TargetPerson.FullName" *@ />

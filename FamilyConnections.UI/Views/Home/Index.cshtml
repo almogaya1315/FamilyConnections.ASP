@@ -44,7 +44,7 @@
                 <br />
                 <div style="margin-top:30px">OR SELECT</div>
 
-                <form asp-controller="Home" asp-action="Enter" asp method="post">
+                <form asp-controller="Home" asp-action="Enter" method="post">
                     <div>
                         <select asp-for="CurrentPerson.Id" asp-items="@Model.AllPersonsItems" name="Id">
                             <option value="-1" selected="selected">-- Person --</option>

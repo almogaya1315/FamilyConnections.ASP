@@ -119,7 +119,7 @@ public class HomeController : Controller
             ViewData[key] = null;
             var homePage = GetHomeVm();
             homePage.CurrentPerson = new PersonViewModel();
-            return RedirectToAction("Index", homePage);
+            return View("Index", homePage);
         }
         catch (Exception e)
         {
@@ -160,7 +160,7 @@ public class HomeController : Controller
                 }
             }
 
-            return RedirectToAction("Index", homePage);
+            return View("Index", homePage);
         }
         catch (Exception e)
         {
@@ -194,10 +194,15 @@ public class HomeController : Controller
             ModelState.AddModelError("Relationship.Id", req);
         }
 
-        // unnecessary keys in the model state, at this point, that make the model invalid,
-        // because they are not populated yet, from the related id
-        ModelState.Remove("RelatedPerson.FullName");
-        ModelState.Remove("RelatedPerson.PlaceOfBirth");
+        // remove unnecessary keys in the model state, that make the model invalid,
+        var neededKeys = Enum.GetValues(typeof(eModelStateKeys)).Cast<eModelStateKeys>().ToList();
+        foreach (var modelKey in ModelState.Keys)
+        {
+            if (!neededKeys.Exists(k => k.ToString().Replace("_", ".") == modelKey))
+            {
+                ModelState.Remove(modelKey);
+            }
+        }
 
         return UIvalidated && ModelState.IsValid;
     }
@@ -233,24 +238,26 @@ public class HomeController : Controller
 
     public IActionResult Add(ConnectionViewModel newConnection)
     {
+        // MUST
+        _httpHandler.SetContext(HttpContext);
+        var homePage = GetHomeVm();
+
         try
         {
-            // MUST
-            _httpHandler.SetContext(HttpContext);
-            var homePage = GetHomeVm();
-
             if (ValidateParameters(newConnection))
             {
-                var newPerson = new PersonViewModel(newConnection.TargetPerson);
-                newPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
 
-                UpdatePersistency(homePage, newPerson, newConnection);
+                newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
+                newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
+                newConnection.TargetPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
 
-                ViewData["currentPerson"] = homePage.CurrentPerson = newPerson;
+                UpdatePersistency(homePage, newConnection.TargetPerson, newConnection);
+
+                ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
                 homePage.SetCurrentConnections();
                 _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
 
-                return RedirectToAction("Index", homePage);
+                return View("Index", homePage);
             }
             else
             {
@@ -261,7 +268,11 @@ public class HomeController : Controller
         catch (Exception e)
         {
             _logger.LogError(e, "Error in HomeController.Enter");
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            newConnection.Relationship.SetError(eError.ProcessError);
+            ModelState.AddModelError("Relationship.Error", newConnection.Relationship.Error);
+            PopulateViewBags(homePage);
+            return View(newConnection);
+            //return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 

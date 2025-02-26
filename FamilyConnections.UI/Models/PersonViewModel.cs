@@ -19,15 +19,15 @@ namespace FamilyConnections.UI.Models
             }
         }
 
-        public PersonViewModel(PersonViewModel vm)
-        {
-            _person = new PersonDTO
-            {
-                FullName = vm.FullName,
-                DateOfBirth = vm.DateOfBirth,
-                PlaceOfBirth = vm.PlaceOfBirth,
-            };
-        }
+        //public PersonViewModel(PersonViewModel vm)
+        //{
+        //    _person = new PersonDTO
+        //    {
+        //        FullName = vm.FullName,
+        //        DateOfBirth = vm.DateOfBirth,
+        //        PlaceOfBirth = vm.PlaceOfBirth,
+        //    };
+        //}
         public PersonViewModel(PersonDTO personDTO)
         {
             _person = personDTO;

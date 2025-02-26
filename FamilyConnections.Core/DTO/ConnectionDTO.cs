@@ -1,9 +1,11 @@
 ﻿using FamilyConnections.Core.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FamilyConnections.Core.DTO
 {
@@ -64,7 +66,25 @@ namespace FamilyConnections.Core.DTO
         }
 
         public int Id { get; set; }
-        public eRel? Type { get; set; }
+        public eRel? Type 
+        {
+            get
+            {
+                return (eRel)Id;
+            }
+            set
+            {
+                Id = (int)value;
+            }
+        }
+
+        public void SetError(eError error)
+        {
+            var field = error.GetType().GetField(error.ToString());
+            var attribute = (DescriptionAttribute)field?.GetCustomAttributes(typeof(DescriptionAttribute), false)[0];
+            Error = attribute.Description;
+        }
+        public string Error { get; set; }
 
         public static eRel Get(int relId)
         {

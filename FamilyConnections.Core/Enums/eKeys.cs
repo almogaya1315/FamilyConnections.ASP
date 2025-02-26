@@ -11,4 +11,13 @@ namespace FamilyConnections.Core.Enums
         currentPerson,
         allPersons
     }
+
+    public enum eModelStateKeys
+    {
+        TargetPerson_FullName,
+        TargetPerson_DateOfBirth,
+        TargetPerson_PlaceOfBirth,
+        RelatedPerson_Id,
+        Relationship_Id
+    }
 }

@@ -45,6 +45,38 @@ namespace FamilyConnections.UI.Models
         {
             var newConnections = new List<ConnectionDTO>();
 
+            foreach (var person in AllPersons)
+            {
+                // all persons that are not the person in iteration
+                var otherPersons = AllPersons.Where(p => p.Id != person.Id);
+                // all persons that have first level connection with the person in iteration
+                var firstLevel = otherPersons.SelectMany(p => p.Connections.Where(c => c.Key.Id == person.Id).ToList()).ToDictionary(k => k.Key, v => v.Value);
+                var secondLevel = firstLevel.SelectMany(p => p.Key.Connections).Distinct();
+
+                foreach (var other in secondLevel)
+                {
+                    var firstConn = firstLevel.First(p => p.Key.Id == other.Key.Id);
+
+                    if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    {
+                        var newRel = eRel.Uncle;
+                        var newConnection = new ConnectionDTO(person.DTO, other.Key.DTO, newRel);
+                        newConnections.Add(newConnection);
+                    }
+                    else if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    {
+                        
+                    }
+                    else if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    {
+
+                    }
+                    //else if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    //{
+                    //}
+                }
+            }
+
 
             return newConnections.ToArray();
         }
