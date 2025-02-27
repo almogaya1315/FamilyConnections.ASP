@@ -49,7 +49,22 @@ public class HomeController : Controller
             var personsDTO = _appRepo.GetPersons();
             var personsSelect = personsDTO.Select(u => new SelectListItem(u.FullName, u.Id.ToString())).ToList();
             var personsVm = personsDTO.Select(p => new PersonViewModel(p)).ToList();
-            var connectionsVm = _appRepo.GetConnections(personsDTO).Select(c => new ConnectionViewModel(c)).ToList();
+
+            List<ConnectionViewModel> connectionsVm;
+            if (!_httpHandler.SessionHasKey(eKeys.flatConnections))
+            {
+                connectionsVm = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO).Select(c => new ConnectionViewModel(c)).ToList();
+                _httpHandler.SetToSession(eKeys.flatConnections, connectionsFlat);
+            }
+            else
+            {
+                var connectionsFlat = _httpHandler.GetSessionValue<List<FlatConnection>>(eKeys.flatConnections);
+                connectionsVm = connectionsFlat.Select(f => 
+                    new ConnectionViewModel(personsVm.Find(p => p.Id == f.TargetId), 
+                                            personsVm.Find(p => p.Id == f.RelatedId), 
+                                            RelationshipInfo.Get(f.RelationshipId))).ToList();
+            }
+
             homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
             // Set the allPersons cache to the session
             _httpHandler.SetToSession(eKeys.allPersons, homePage.AllPersons);
@@ -249,7 +264,8 @@ public class HomeController : Controller
 
                 newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
                 newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
-                newConnection.TargetPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
+                newConnection.TargetPerson.Connections.Add(newConnection);
+                //newConnection.TargetPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
 
                 UpdatePersistency(homePage, newConnection.TargetPerson, newConnection);
 

@@ -96,17 +96,29 @@ namespace FamilyConnections.UI.Models
         }
 
         //[JsonConverter(typeof(PersonViewModelDictionaryConverter))]
-        public Dictionary<PersonViewModel, eRel> Connections 
-        {
-            get
-            {
-                return _person.Connections.ToDictionary(k => new PersonViewModel(k.Key), v => v.Value);
-            }
-            set
-            {
-                _person.Connections = value.ToDictionary(k => k.Key.DTO, v => v.Value);
-            }
-        }
+        //public Dictionary<PersonViewModel, eRel> Connections 
+        //{
+        //    get
+        //    {
+        //        return _person.Connections.ToDictionary(k => new PersonViewModel(k.Key), v => v.Value);
+        //    }
+        //    set
+        //    {
+        //        _person.Connections = value.ToDictionary(k => k.Key.DTO, v => v.Value);
+        //    }
+        //}
+
+        public List<ConnectionViewModel> Connections { get; set; }
+        //{
+        //    get
+        //    {
+        //        return _person.FlatConnections.Select(f => new ConnectionViewModel(f));
+        //    }
+        //    set
+        //    {
+
+        //    }
+        //}
 
         //public Task BindModelAsync(ModelBindingContext bindingContext)
         //{

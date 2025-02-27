@@ -11,7 +11,7 @@ namespace FamilyConnections.Core.Interfaces
     {
         void AddConnections(params ConnectionDTO[] newConnections);
         void AddPerson(PersonDTO newPerson);
-        public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null);
+        public List<ConnectionDTO> GetConnections(out List<FlatConnection> connectionsFlat, List<PersonDTO> allPersons = null);
         public List<PersonDTO> GetPersons();
     }
 }

@@ -50,24 +50,24 @@ namespace FamilyConnections.UI.Models
                 // all persons that are not the person in iteration
                 var otherPersons = AllPersons.Where(p => p.Id != person.Id);
                 // all persons that have first level connection with the person in iteration
-                var firstLevel = otherPersons.SelectMany(p => p.Connections.Where(c => c.Key.Id == person.Id).ToList()).ToDictionary(k => k.Key, v => v.Value);
+                var firstLevel = otherPersons.SelectMany(p => p.Connections.Where(c => c.TargetPerson.Id == person.Id).ToList()).ToDictionary(k => k.TargetPerson, v => v.Relationship.Type);
                 var secondLevel = firstLevel.SelectMany(p => p.Key.Connections).Distinct();
 
                 foreach (var other in secondLevel)
                 {
-                    var firstConn = firstLevel.First(p => p.Key.Id == other.Key.Id);
+                    var firstConn = firstLevel.First(p => p.Key.Id == other.TargetPerson.Id);
 
-                    if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    if (firstConn.Value == eRel.Husband && other.Relationship.Type == eRel.Mother)
                     {
                         var newRel = eRel.Uncle;
-                        var newConnection = new ConnectionDTO(person.DTO, other.Key.DTO, newRel);
+                        var newConnection = new ConnectionDTO(person.DTO, other.RelatedPerson.DTO, newRel);
                         newConnections.Add(newConnection);
                     }
-                    else if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    else if (firstConn.Value == eRel.Husband && other.Relationship.Type == eRel.Mother)
                     {
                         
                     }
-                    else if (firstConn.Value == eRel.Husband && other.Value == eRel.Mother)
+                    else if (firstConn.Value == eRel.Husband && other.Relationship.Type == eRel.Mother)
                     {
 
                     }
@@ -85,7 +85,8 @@ namespace FamilyConnections.UI.Models
         {
             if (CurrentPerson != null)
             {
-                CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToDictionary(k => k.RelatedPerson, v => v.Relationship.Type.Value);
+                CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToList();
+                //.ToDictionary(k => k.RelatedPerson, v => v.Relationship.Type.Value);
             }
         }
     }

@@ -2,5 +2,3 @@
 {"Id":2,"FullName":"Keren Matsliah","DateOfBirth":"1984-02-05T00:00:00","DateOfBirthStr":"05/02/1984","PlaceOfBirth":"Israel","Connections":{}}
 {"Id":3,"FullName":"Gaya Matsliah","DateOfBirth":"2013-06-06T00:00:00","DateOfBirthStr":"06/06/2013","PlaceOfBirth":"Israel","Connections":{}}
 {"Id":4,"FullName":"Almog Matsliah","DateOfBirth":"2015-03-26T00:00:00","DateOfBirthStr":"26/03/2015","PlaceOfBirth":"Israel","Connections":{}}
-{"Id":5,"FullName":"Racheli Paz","DateOfBirth":"2025-02-06T22:40:00","DateOfBirthStr":"06/02/2025","PlaceOfBirth":"Israel","Connections":{}}
-{"Id":6,"FullName":"Racheli Paz","DateOfBirth":"2025-02-13T22:42:00","DateOfBirthStr":"13/02/2025","PlaceOfBirth":"Israel","Connections":{}}

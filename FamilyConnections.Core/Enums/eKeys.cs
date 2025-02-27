@@ -9,7 +9,8 @@ namespace FamilyConnections.Core.Enums
     public enum eKeys
     {
         currentPerson,
-        allPersons
+        allPersons,
+        flatConnections
     }
 
     public enum eModelStateKeys

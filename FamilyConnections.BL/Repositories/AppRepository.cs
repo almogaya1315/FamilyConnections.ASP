@@ -24,9 +24,9 @@ namespace FamilyConnections.BL.Repositories
             return _context.GetPersons();
         }
 
-        public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null)
+        public List<ConnectionDTO> GetConnections(out List<FlatConnection> connectionsFlat, List<PersonDTO> allPersons = null)
         {
-            return _context.GetConnections(allPersons);
+            return _context.GetConnections(out connectionsFlat, allPersons);
         }
 
         public void AddConnections(params ConnectionDTO[] newConnections)

@@ -14,14 +14,20 @@ namespace FamilyConnections.DAL.Contexts
         private const string AllConnectionsPath = "..\\FamilyConnections.DAL\\Files\\AllConnections.txt";
         private const string AllPersonsPath = "..\\FamilyConnections.DAL\\Files\\AllPersons.txt";
 
+        private List<ConnectionDTO> ReadConnections(List<PersonDTO> allPersons, out List<FlatConnection> connectionsFlat)
+        {
+            var connectionsJson = File.ReadAllLines(AllConnectionsPath);
+            connectionsFlat = connectionsJson.Select(c => JsonConvert.DeserializeObject<FlatConnection>(c)).ToList();
+            var connectionsDTO = connectionsFlat.Select(f => new ConnectionDTO(allPersons.Find(p => p.Id == f.TargetId), allPersons.Find(p => p.Id == f.RelatedId), RelationshipInfo.Get(f.RelationshipId)));
+            return connectionsDTO.ToList();
+        }
 
-
-        public List<ConnectionDTO> GetConnections(List<PersonDTO> allPersons = null)
+        public List<ConnectionDTO> GetConnections(out List<FlatConnection> connectionsFlat, List<PersonDTO> allPersons = null)
         {
             if (allPersons == null) allPersons = GetPersons();
-            var connectionsJson = File.ReadAllLines(AllConnectionsPath);
-            var connectionsFlat = connectionsJson.Select(c => JsonConvert.DeserializeObject<FlatConnection>(c)).ToList();
-            var connections = connectionsFlat.Select(f => new ConnectionDTO(allPersons.Find(p => p.Id == f.TargetId), allPersons.Find(p => p.Id == f.RelatedId), RelationshipInfo.Get(f.RelationshipId)));
+            //var connectionsJson = File.ReadAllLines(AllConnectionsPath);
+            //var connectionsFlat = connectionsJson.Select(c => JsonConvert.DeserializeObject<FlatConnection>(c)).ToList();
+            var connections = ReadConnections(allPersons, out connectionsFlat);
             return connections.ToList();
 
             //var AllPersons = GetPersons();
@@ -78,6 +84,14 @@ namespace FamilyConnections.DAL.Contexts
         {
             var personsJson = File.ReadAllLines(AllPersonsPath);
             var persons = personsJson.Select(p => JsonConvert.DeserializeObject<PersonDTO>(p)).ToList();
+
+            var conns = ReadConnections(persons, out List<FlatConnection> connectionsFlat);
+            foreach (var person in persons)
+            {
+                //var personConns = conns.Where(c => c.TargetPerson.Id == 1);
+                //person.Connections = personConns.ToDictionary(k => k.RelatedPerson, v => v.Relationship.Type.Value);
+                person.FlatConnections = connectionsFlat.Where(f => f.TargetId == person.Id).ToList();
+            }
             return persons;
 
             //var person1 = new PersonDTO
