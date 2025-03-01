@@ -39,32 +39,39 @@ public class HomeController : Controller
         //_contextAccessor = httpContextAccessor;
     }
 
+    private List<ConnectionViewModel> GetConnectionsCache(List<PersonViewModel> personsVm, List<PersonDTO> personsDTO)
+    {
+        List<ConnectionViewModel> connectionsVm;
+
+        if (!_httpHandler.SessionHasKey(eKeys.flatConnections))
+        {
+            connectionsVm = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO).Select(c => new ConnectionViewModel(c)).ToList();
+            _httpHandler.SetToSession(eKeys.flatConnections, connectionsFlat);
+        }
+        else
+        {
+            var connectionsFlat = _httpHandler.GetSessionValue<List<FlatConnection>>(eKeys.flatConnections);
+            connectionsVm = connectionsFlat.Select(f =>
+                new ConnectionViewModel(personsVm.Find(p => p.Id == f.TargetId),
+                                        personsVm.Find(p => p.Id == f.RelatedId),
+                                        RelationshipInfo.Get(f.RelationshipId))).ToList();
+        }
+
+        return connectionsVm;
+    }
+
     private HomeViewModel GetHomeVm()
     {
         HomeViewModel homePage;
+        List<ConnectionViewModel> connectionsVm;
+        var personsDTO = _appRepo.GetPersons();
 
         // Check if the session has the allPersons cache
         if (!_httpHandler.SessionHasKey(eKeys.allPersons))
         {
-            var personsDTO = _appRepo.GetPersons();
             var personsSelect = personsDTO.Select(u => new SelectListItem(u.FullName, u.Id.ToString())).ToList();
             var personsVm = personsDTO.Select(p => new PersonViewModel(p)).ToList();
-
-            List<ConnectionViewModel> connectionsVm;
-            if (!_httpHandler.SessionHasKey(eKeys.flatConnections))
-            {
-                connectionsVm = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO).Select(c => new ConnectionViewModel(c)).ToList();
-                _httpHandler.SetToSession(eKeys.flatConnections, connectionsFlat);
-            }
-            else
-            {
-                var connectionsFlat = _httpHandler.GetSessionValue<List<FlatConnection>>(eKeys.flatConnections);
-                connectionsVm = connectionsFlat.Select(f => 
-                    new ConnectionViewModel(personsVm.Find(p => p.Id == f.TargetId), 
-                                            personsVm.Find(p => p.Id == f.RelatedId), 
-                                            RelationshipInfo.Get(f.RelationshipId))).ToList();
-            }
-
+            connectionsVm = GetConnectionsCache(personsVm, personsDTO);
             homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
             // Set the allPersons cache to the session
             _httpHandler.SetToSession(eKeys.allPersons, homePage.AllPersons);
@@ -73,7 +80,8 @@ public class HomeController : Controller
         {
             var personsVm = _httpHandler.GetSessionValue<List<PersonViewModel>>(eKeys.allPersons);
             var personsSelect = personsVm.Select(u => new SelectListItem(u.FullName, u.Id.ToString())).ToList();
-            homePage = new HomeViewModel(personsSelect, personsVm);
+            connectionsVm = GetConnectionsCache(personsVm, personsDTO);
+            homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
         }
         return homePage;
     }
@@ -239,15 +247,14 @@ public class HomeController : Controller
         ViewBag.Relationships = homePage.Relationships;
     }
 
-    private void UpdatePersistency(HomeViewModel homePage, PersonViewModel newPerson, ConnectionViewModel newConnection)
+    private void UpdatePersistency(HomeViewModel homePage, ConnectionViewModel newConnection)
     {
-        homePage.AllPersons.Add(newPerson);
-        _appRepo.AddPerson(newPerson.DTO);
-
+        homePage.AllPersons.Add(newConnection.TargetPerson);
         homePage.AllConnections.Add(newConnection);
-        _appRepo.AddConnections(newConnection.DTO);
-
         var newConnections = homePage.CheckAllConnections();
+
+        _appRepo.AddPerson(newConnection.TargetPerson.DTO);
+        _appRepo.AddConnections(newConnection.DTO);
         _appRepo.AddConnections(newConnections);
     }
 
@@ -261,13 +268,11 @@ public class HomeController : Controller
         {
             if (ValidateParameters(newConnection))
             {
-
                 newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
                 newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
-                newConnection.TargetPerson.Connections.Add(newConnection);
-                //newConnection.TargetPerson.Connections.Add(newConnection.RelatedPerson, newConnection.Relationship.Type.Value);
+                newConnection.TargetPerson.SetConnections(homePage.AllPersons, newConnection);
 
-                UpdatePersistency(homePage, newConnection.TargetPerson, newConnection);
+                UpdatePersistency(homePage, newConnection);
 
                 ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
                 homePage.SetCurrentConnections();

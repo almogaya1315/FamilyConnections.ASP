@@ -45,15 +45,18 @@ namespace FamilyConnections.UI.Models
         {
             var newConnections = new List<ConnectionDTO>();
 
+            AllPersons.Reverse();
             foreach (var person in AllPersons)
             {
                 // all persons that are not the person in iteration
-                var otherPersons = AllPersons.Where(p => p.Id != person.Id);
-                // all persons that have first level connection with the person in iteration
-                var firstLevel = otherPersons.SelectMany(p => p.Connections.Where(c => c.TargetPerson.Id == person.Id).ToList()).ToDictionary(k => k.TargetPerson, v => v.Relationship.Type);
-                var secondLevel = firstLevel.SelectMany(p => p.Key.Connections).Distinct();
+                var otherPersons = AllPersons.Where(p => p.Id != person.Id).ToList();
+                // all persons that have first level connection with the person in iteration's related person
+                var related = person.SetConnections(AllPersons).First().RelatedPerson;
+                var firstLevelConns = otherPersons.SelectMany(p => p.SetConnections(otherPersons).Where(c => c.RelatedPerson.Id == related.Id).ToList());
+                var firstLevel = firstLevelConns.ToDictionary(k => k.TargetPerson, v => v.Relationship.Type);
+                //var secondLevel = firstLevel.SelectMany(p => p.Key.SetConnections(firstLevel.Keys.ToList())).Distinct();
 
-                foreach (var other in secondLevel)
+                foreach (var other in firstLevelConns)
                 {
                     var firstConn = firstLevel.First(p => p.Key.Id == other.TargetPerson.Id);
 
@@ -85,8 +88,9 @@ namespace FamilyConnections.UI.Models
         {
             if (CurrentPerson != null)
             {
-                CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToList();
-                //.ToDictionary(k => k.RelatedPerson, v => v.Relationship.Type.Value);
+                CurrentPerson.DTO.FlatConnections = AllConnections.Select(c => c.DTO.Flat).Where(c => c.TargetId == CurrentPerson.Id).ToList();
+
+                //CurrentPerson.Connections = AllConnections.Where(c => c.TargetPerson.Id == CurrentPerson.Id).ToList();
             }
         }
     }

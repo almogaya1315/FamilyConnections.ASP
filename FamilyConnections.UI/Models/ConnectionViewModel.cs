@@ -22,6 +22,11 @@ namespace FamilyConnections.UI.Models
             _connection = new ConnectionDTO();
         }
 
+        //public ConnectionViewModel(FlatConnection flat) : this()
+        //{
+        //    _connection.Flat = flat;
+        //}
+
         public ConnectionViewModel(ConnectionDTO dto)
         {
             _connection = dto;
@@ -33,9 +38,7 @@ namespace FamilyConnections.UI.Models
 
         public ConnectionViewModel(PersonViewModel target, PersonViewModel related, eRel? rel)
         {
-            _connection.TargetPerson = target.DTO;
-            _connection.RelatedPerson = related.DTO;
-            _connection.Relationship = new RelationshipInfo(rel);
+            _connection = new ConnectionDTO(target.DTO, related.DTO, rel);
 
             //TargetPerson = target;
             //RelatedPerson = related;

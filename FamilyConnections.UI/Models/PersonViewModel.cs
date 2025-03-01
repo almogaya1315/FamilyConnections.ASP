@@ -108,17 +108,24 @@ namespace FamilyConnections.UI.Models
         //    }
         //}
 
-        public List<ConnectionViewModel> Connections { get; set; }
-        //{
-        //    get
-        //    {
-        //        return _person.FlatConnections.Select(f => new ConnectionViewModel(f));
-        //    }
-        //    set
-        //    {
+        public List<ConnectionViewModel> SetConnections(List<PersonViewModel> persons, ConnectionViewModel newConnection = null)
+        {
+            var personsScope = persons.ToList();
+            if (!personsScope.Exists(p => p.Id == _person.Id)) personsScope.Add(this);
 
-        //    }
-        //}
+            if (newConnection != null)
+            {
+                newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
+                _person.FlatConnections.Add(newConnection.DTO.Flat);
+            }
+
+            return Connections = _person.FlatConnections.Select(f => new ConnectionViewModel(
+                                                                     personsScope.Find(p => p.Id == f.TargetId),
+                                                                     personsScope.Find(p => p.Id == f.RelatedId),
+                                                                     RelationshipInfo.Get(f.RelationshipId))).ToList();
+        }
+
+        public List<ConnectionViewModel> Connections { get; set; }
 
         //public Task BindModelAsync(ModelBindingContext bindingContext)
         //{

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,20 +21,24 @@ namespace FamilyConnections.Core.DTO
             TargetPerson = target;
             RelatedPerson = related;
             Relationship = new RelationshipInfo(rel);
+            Flat = new FlatConnection(TargetPerson.Id, RelatedPerson.Id, Relationship.Id);
         }
-
         public ConnectionDTO()
         {
             TargetPerson = new PersonDTO();
             RelatedPerson = new PersonDTO();
             Relationship = new RelationshipInfo();
         }
-
+        private FlatConnection _flat;
         public FlatConnection Flat
         {
             get
             {
-                return new FlatConnection(TargetPerson.Id, RelatedPerson.Id, Relationship.Id);
+                return _flat; 
+            }
+            set
+            {
+                _flat = value;
             }
         }
     }
