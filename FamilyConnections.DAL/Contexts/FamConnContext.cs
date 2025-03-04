@@ -100,6 +100,7 @@ namespace FamilyConnections.DAL.Contexts
             //    FullName = "Lior Matsliah",
             //    DateOfBirth = new DateTime(1985, 5, 23),
             //    PlaceOfBirth = "Israel",
+            //    Gender = eGender.Male
             //};
             //File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person1) });
 
@@ -109,6 +110,7 @@ namespace FamilyConnections.DAL.Contexts
             //    FullName = "Keren Matsliah",
             //    DateOfBirth = new DateTime(1984, 2, 5),
             //    PlaceOfBirth = "Israel",
+            //    Gender = eGender.Female
             //};
             //File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person2) });
 
@@ -118,6 +120,7 @@ namespace FamilyConnections.DAL.Contexts
             //    FullName = "Gaya Matsliah",
             //    DateOfBirth = new DateTime(2013, 6, 6),
             //    PlaceOfBirth = "Israel",
+            //    Gender = eGender.Female
             //};
             //File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person3) });
 
@@ -127,6 +130,7 @@ namespace FamilyConnections.DAL.Contexts
             //    FullName = "Almog Matsliah",
             //    DateOfBirth = new DateTime(2015, 3, 26),
             //    PlaceOfBirth = "Israel",
+            //    Gender = eGender.Female
             //};
             //File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(person4) });
 

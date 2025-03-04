@@ -35,6 +35,8 @@ namespace FamilyConnections.Core.DTO
         }
         public string PlaceOfBirth { get; set; }
 
+        public eGender? Gender { get; set; }
+
         //private Dictionary<PersonDTO, eRel> _connections;
         //[JsonIgnore]
         //public Dictionary<PersonDTO, eRel> Connections

@@ -21,5 +21,9 @@ namespace FamilyConnections.Core.Enums
         Cousin,
         Niece,
         Nephew,
+        MotherInLaw,
+        FatherInLaw,
+        BrotherInLaw,
+        SisterInLaw,
     }
 }

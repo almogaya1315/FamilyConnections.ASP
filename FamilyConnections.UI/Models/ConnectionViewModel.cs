@@ -2,6 +2,7 @@
 using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace FamilyConnections.UI.Models
 {
@@ -78,5 +79,10 @@ namespace FamilyConnections.UI.Models
                 _connection.Relationship = value;
             } 
         }
+
+        //internal KeyValuePair<PersonViewModel, eRel> ToKeyValuePair()
+        //{
+        //    return new KeyValuePair<PersonViewModel, eRel>(TargetPerson, Relationship.Type.Value);
+        //}
     }
 }

@@ -18,7 +18,8 @@ namespace FamilyConnections.Core.Enums
         TargetPerson_FullName,
         TargetPerson_DateOfBirth,
         TargetPerson_PlaceOfBirth,
+        TargetPerson_Gender,
         RelatedPerson_Id,
-        Relationship_Id
+        Relationship_Id,
     }
 }

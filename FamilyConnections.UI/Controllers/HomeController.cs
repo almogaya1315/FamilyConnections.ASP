@@ -192,6 +192,14 @@ public class HomeController : Controller
         }
     }
 
+    private void AddToModelError(eModelStateKeys eKey)
+    {
+        var req = "Required!";
+        var key = eKey.ToString().Replace("_", "."); //"TargetPerson.Gender";
+        ModelState.Remove(key);
+        ModelState.AddModelError(key, req);
+    }
+
     private bool ValidateParameters(ConnectionViewModel newConnection)
     {
         // FullName is a text input, UI validated element -> asp-validation-for="TargetPerson.."
@@ -199,22 +207,30 @@ public class HomeController : Controller
         // The code flow will not get here if its not valid, because it gets validated in client side JS
         var UIvalidated = !string.IsNullOrWhiteSpace(newConnection.TargetPerson.FullName);
 
-        var req = "Required!";
+        //var req = "Required!";
         if (!newConnection.TargetPerson.DateOfBirth.HasValue || newConnection.TargetPerson.DateOfBirth == default(DateTime))
         {
-            ModelState.AddModelError("TargetPerson.DateOfBirth", req);
+            //ModelState.AddModelError("TargetPerson.DateOfBirth", req);
+            AddToModelError(eModelStateKeys.TargetPerson_DateOfBirth);
         }
         if (newConnection.TargetPerson.PlaceOfBirth == "-1")
         {
-            ModelState.AddModelError("TargetPerson.PlaceOfBirth", req);
+            //ModelState.AddModelError("TargetPerson.PlaceOfBirth", req);
+            AddToModelError(eModelStateKeys.TargetPerson_PlaceOfBirth);
         }
         if (newConnection.RelatedPerson.Id == -1)
         {
-            ModelState.AddModelError("RelatedPerson.Id", req);
+            //ModelState.AddModelError("RelatedPerson.Id", req);
+            AddToModelError(eModelStateKeys.RelatedPerson_Id);
         }
         if (newConnection.Relationship.Id == -1)
         {
-            ModelState.AddModelError("Relationship.Id", req);
+            //ModelState.AddModelError("Relationship.Id", req);
+            AddToModelError(eModelStateKeys.Relationship_Id);
+        }
+        if (!newConnection.TargetPerson.Gender.HasValue)
+        {
+            AddToModelError(eModelStateKeys.TargetPerson_Gender);
         }
 
         // remove unnecessary keys in the model state, that make the model invalid,
@@ -245,6 +261,7 @@ public class HomeController : Controller
         ViewBag.Countries = homePage.Countries;
         ViewBag.AllPersonsItems = homePage.AllPersonsItems;
         ViewBag.Relationships = homePage.Relationships;
+        ViewBag.Genders = homePage.Genders;
     }
 
     private void UpdatePersistency(HomeViewModel homePage, ConnectionViewModel newConnection)

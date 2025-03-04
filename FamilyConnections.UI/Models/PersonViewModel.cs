@@ -94,6 +94,17 @@ namespace FamilyConnections.UI.Models
                 _person.PlaceOfBirth = value;
             }
         }
+        public eGender? Gender 
+        {
+            get
+            {
+                return _person.Gender;
+            }
+            set
+            {
+                _person.Gender = value;
+            } 
+        }
 
         //[JsonConverter(typeof(PersonViewModelDictionaryConverter))]
         //public Dictionary<PersonViewModel, eRel> Connections 

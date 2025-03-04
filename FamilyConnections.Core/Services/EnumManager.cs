@@ -10,9 +10,17 @@ namespace FamilyConnections.Core.Services
 {
     public class EnumManager
     {
-        public static List<SelectListItem> GetRelationships()
+        //public static List<SelectListItem> GetRelationships()
+        //{
+        //    return Enum.GetValues(typeof(eRel)).Cast<eRel>().Select(e => new SelectListItem(e.ToString(), ((int)e).ToString())).ToList();
+        //}
+        //public static List<SelectListItem> GetGenders()
+        //{
+        //    return Enum.GetValues(typeof(eGender)).Cast<eGender>().Select(e => new SelectListItem(e.ToString(), ((int)e).ToString())).ToList();
+        //}
+        public static List<SelectListItem> GetEnum<T>() where T : Enum
         {
-            return Enum.GetValues(typeof(eRel)).Cast<eRel>().Select(e => new SelectListItem(e.ToString(), ((int)e).ToString())).ToList();
+            return Enum.GetValues(typeof(T)).Cast<T>().Select(e => new SelectListItem(e.ToString(), Convert.ToInt32(e).ToString())).ToList();
         }
     }
 }

@@ -28,6 +28,14 @@
             </div>
             <br />
             <div class="form-group">
+                <label asp-for="TargetPerson.Gender" class="control-label">Gender</label>
+                <select class="form-select-bordered" asp-for="TargetPerson.Gender" asp-items="ViewBag.Genders" @* name="CurrentConnection.TargetPerson.Gender" *@>
+                    <option value="-1" selected="selected">-- Gender --</option>
+                </select>
+                <span id="TargetPerson_Gender" asp-validation-for="TargetPerson.Gender" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
                 <label style="display:block" asp-for="RelatedPerson.Id" class="control-label">Connecting to....</label>
                 <select class="form-select-bordered" asp-for="RelatedPerson.Id" asp-items="ViewBag.AllPersonsItems" @* name="CurrentConnection.RelatedPerson.Id" *@>
                     <option value="-1" selected="selected">-- Person --</option>
