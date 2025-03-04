@@ -84,5 +84,10 @@ namespace FamilyConnections.UI.Models
         //{
         //    return new KeyValuePair<PersonViewModel, eRel>(TargetPerson, Relationship.Type.Value);
         //}
+
+        public override string ToString()
+        {
+            return $"Target: {TargetPerson.FullName}, Related: {RelatedPerson.FullName}, Rel: {Relationship.Type}";
+        }
     }
 }

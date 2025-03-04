@@ -3,6 +3,7 @@ using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.Core.Services;
 using FamilyConnections.UI.Controllers;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
@@ -54,52 +55,60 @@ namespace FamilyConnections.UI.Models
             AllPersons.Reverse();
             foreach (var person in AllPersons)
             {
-                // all persons that are not the person in iteration
-                var otherPersons = AllPersons.Where(p => p.Id != person.Id).ToList();
-
-                // all persons that have first level connection with the person in iteration's related person
-                var connections = person.SetConnections(AllPersons);
-                var connectionToRelated = connections.First();
-                var relatedConnections = otherPersons.SelectMany(p => p.SetConnections(otherPersons).Where(c => c.RelatedPerson.Id == connectionToRelated.RelatedPerson.Id).ToList());
-
-                foreach (var relatedConn in relatedConnections)
+                try
                 {
-                    eRel? relatedRel = null;
-                    eRel? personRel = null;
-                    ConnectionDTO relatedNewConn;
-                    ConnectionDTO personNewConn;
+                    // all persons that are not the person in iteration
+                    var otherPersons = AllPersons.Where(p => p.Id != person.Id).ToList();
 
-                    // if the related's connection's relation is MOTHER, 
-                    // and the relation to the related is SISTER or BROTHER,
-                    // then the person in iteration's relation to the related's connection in (inner) iteration...
-                    if (relatedConn.Relationship.Type == eRel.Mother && IsSibling(connectionToRelated)) 
-                    {
-                        // is AUNT or UNCLE by gender, for the related
-                        relatedRel = person.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    // all persons that have first level connection with the person in iteration's related person
+                    var connections = person.SetConnections(AllPersons);
+                    var othersConnections = otherPersons.SelectMany(p => p.SetConnections(AllPersons)).ToList();
+                    var relatedConnections = othersConnections.Select(c => (Conn: c, connectionToRelated: connections.Find(r => c.RelatedPerson.Id == r.RelatedPerson.Id)))
+                                                              .Where(rc => rc.connectionToRelated != null).ToList();
 
-                        // or NIECE or NEPHEW by gender, for the person
-                        personRel = relatedConn.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
-                    }
-                    else if (relatedConn.Relationship.Type == eRel.Wife && IsSibling(connectionToRelated))
+                    foreach (var related in relatedConnections)
                     {
-                        // is SisterInLaw or BrotherInLaw by gender, for the related
-                        relatedRel = person.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                        eRel? relation = null;
 
-                        // is SisterInLaw or BrotherInLaw by gender, for the person
-                        personRel = relatedConn.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                        // if the related's connection's relation is MOTHER or WIFE, 
+                        // and the relation TO the related is SISTER or BROTHER,
+                        // then the person in iteration's relation to the related's connection in (inner) iteration...
+                        if (related.Conn.Relationship.Type == eRel.Mother && IsSibling(related.connectionToRelated))
+                        {
+                            // is NIECE or NEPHEW by gender, for the person
+                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                        }
+                        else if (related.Conn.Relationship.Type == eRel.Wife && IsSibling(related.connectionToRelated))
+                        {
+                            // is SisterInLaw or BrotherInLaw by gender, for the person
+                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                        }
+                        // if the related's connection's relation is SISTER, 
+                        // and the relation OF the related is SISTER or BROTHER,
+                        // then the person in iteration's relation to the related's connection in (inner) iteration...
+                        else if (related.Conn.Relationship.Type == eRel.Sister && IsSibling(related.Conn))
+                        {
+                            // is AUNT or UNCLE by gender, for the person
+                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                        }
+
+
+
+                        if (relation.HasValue)
+                        {
+                            var newConn = new ConnectionDTO(person.DTO, related.Conn.TargetPerson.DTO, relation);
+                            newConnections.Add(newConn);
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{related.Conn.TargetPerson.Id}]");
+                        }
                     }
 
-                    if (relatedRel.HasValue && personRel.HasValue)
-                    {
-                        relatedNewConn = new ConnectionDTO(relatedConn.TargetPerson.DTO, person.DTO, relatedRel);
-                        personNewConn = new ConnectionDTO(person.DTO, relatedConn.TargetPerson.DTO, personRel);
-                        newConnections.Add(relatedNewConn);
-                        newConnections.Add(personNewConn);
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Unable to find connection between [{person.Id}] and [{relatedConn.TargetPerson.Id}]");
-                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Error in 'HomeViewModel.CheckAllConnections' - target id [{person.Id}]");
                 }
             }
 
