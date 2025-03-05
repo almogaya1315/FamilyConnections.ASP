@@ -73,6 +73,7 @@ public class HomeController : Controller
             var personsVm = personsDTO.Select(p => new PersonViewModel(p)).ToList();
             connectionsVm = GetConnectionsCache(personsVm, personsDTO);
             homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
+            personsVm.ForEach(p => p.SetConnections(homePage.AllPersons));
             // Set the allPersons cache to the session
             _httpHandler.SetToSession(eKeys.allPersons, homePage.AllPersons);
         }

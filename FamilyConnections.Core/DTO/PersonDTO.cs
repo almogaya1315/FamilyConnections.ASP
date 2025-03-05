@@ -37,6 +37,14 @@ namespace FamilyConnections.Core.DTO
 
         public eGender? Gender { get; set; }
 
+        public double? Age
+        {
+            get
+            {
+                return DateTime.Today.Year - DateOfBirth?.Year;
+            }
+        }
+
         //private Dictionary<PersonDTO, eRel> _connections;
         //[JsonIgnore]
         //public Dictionary<PersonDTO, eRel> Connections
@@ -63,5 +71,10 @@ namespace FamilyConnections.Core.DTO
         //        Connections = value.ToDictionary(v => allPersons.Find(p => p.Id == v.RelatedId), v => RelationshipInfo.Get(v.RelationshipId));
         //    }
         //}
+
+        public override string ToString()
+        {
+            return $"{Id}-{FullName}";
+        }
     }
 }

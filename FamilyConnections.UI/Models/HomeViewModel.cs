@@ -60,102 +60,111 @@ namespace FamilyConnections.UI.Models
             {
                 try
                 {
-                    // all persons that are not the person in iteration
-                    var otherPersons = AllPersons.Where(p => p.Id != person.Id).ToList();
-
-                    // all persons that have first level connection with the person in iteration's related person
-                    var connections = person.SetConnections(AllPersons);
-                    var othersConnections = otherPersons.SelectMany(p => p.SetConnections(AllPersons)).ToList();
-                    var relatedConnections = othersConnections.Select(c => (originalConnection: c, connectionToRelated: connections.Find(r => c.RelatedPerson.Id == r.RelatedPerson.Id)))
-                                                              .Where(rc => rc.connectionToRelated != null).ToList();
-
-                    foreach (var related in relatedConnections)
+                    person.SetConnections(AllPersons);
+                    foreach (var personConnection in person.Connections)
                     {
-                        eRel? relation = null;
+                        foreach (var relatedConnection in personConnection.RelatedPerson.Connections)
+                        {
+                            eRel? relation = null;
 
-                        if (related.connectionToRelated.RelatedPerson.Id == related.originalConnection.RelatedPerson.Id &&
-                            related.connectionToRelated.Relationship.Type == related.originalConnection.Relationship.Type)
-                        {
-                            _logger.LogInformation($"Connection between target id [{person.Id}] and related id [{related.originalConnection.RelatedPerson.Id}] allready exists.");
-                            continue;
-                        }
-
-                        // * then the person in iteration's relation to the related's connection in (inner) iteration...
-
-                        // if the related's connection's relation is MOTHER or WIFE, 
-                        // and the relation TO the related is SISTER or BROTHER,
-                        // then.. *
-                        if (related.originalConnection.Relationship.Type == eRel.Mother && IsSibling(related.connectionToRelated))
-                        {
-                            // is NIECE or NEPHEW by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
-                        }
-                        else if (related.originalConnection.Relationship.Type == eRel.Wife && IsSibling(related.connectionToRelated))
-                        {
-                            // is SisterInLaw or BrotherInLaw by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                        }
-                        // if the related's connection's relation is SISTER, 
-                        // and the relation OF the related is SISTER or BROTHER,
-                        // then.. *
-                        else if (related.originalConnection.Relationship.Type == eRel.Sister && IsSibling(related.originalConnection))
-                        {
-                            // is AUNT or UNCLE by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
-                        }
-                        // if the related's connection's relation is HUSBAND, 
-                        // and the relation TO the related is MOTHER or FATHER,
-                        // then.. *
-                        else if (related.originalConnection.Relationship.Type == eRel.Husband && IsParent(related.connectionToRelated))
-                        {
-                            // is MOTHER or FATHER by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        }
-                        // if the related's connection's relation is DAUGHTER, 
-                        // and the relation TO the related is SISTER or BROTHER,
-                        // then.. *
-                        else if (related.originalConnection.Relationship.Type == eRel.Daughter && IsSibling(related.connectionToRelated))
-                        {
-                            // is MOTHER or FATHER by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        }
-                        // if the related's connection's relation is WIFE, 
-                        // and the relation TO the related is MOTHER or FATHER,
-                        // then.. *
-                        else if (related.originalConnection.Relationship.Type == eRel.Wife && IsParent(related.connectionToRelated))
-                        {
-                            // is MOTHER or FATHER by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        }
-                        // if the related's connection's relation is FATHER, 
-                        // and the relation TO the related is WIFE or HUSBAND,
-                        // then.. *
-                        else if (related.originalConnection.Relationship.Type == eRel.Father && IsSpouse(related.connectionToRelated))
-                        {
-                            //if (related.originalConnection.TargetPerson.Age)
-
-                            // is MOTHER or FATHER by gender
-                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        }
-                        else
-                        {
-
-                        }
-
-
-                        if (relation.HasValue)
-                        {
-                            if (!ConnExists(person, related.originalConnection.TargetPerson, relation.Value))
+                            if (personConnection.Relationship.Type == eRel.Mother && IsSibling(relatedConnection))
                             {
-                                var newConn = new ConnectionDTO(person.DTO, related.originalConnection.TargetPerson.DTO, relation);
-                                newConnections.Add(newConn);
+                                relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                            }
+
+
+
+                            if (relation.HasValue)
+                            {
+                                if (!ConnExists(person, personConnection.TargetPerson, relation.Value))
+                                {
+                                    var newConn = new ConnectionDTO(person.DTO, personConnection.TargetPerson.DTO, relation);
+                                    newConnections.Add(newConn);
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{personConnection.TargetPerson.Id}]");
                             }
                         }
-                        else
-                        {
-                            _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{related.originalConnection.TargetPerson.Id}]");
-                        }
                     }
+
+
+
+                    //// all persons that are not the person in iteration
+                    //var otherPersons = AllPersons.Where(p => p.Id != person.Id).ToList();
+
+                    //// all persons that have first level connection with the person in iteration's related person
+                    //var connections = person.SetConnections(AllPersons);
+                    //var othersConnections = otherPersons.SelectMany(p => p.SetConnections(AllPersons)).ToList();
+                    //var relatedConnections = othersConnections.Select(c => (originalConnection: c, connectionToRelated: connections.Find(r => c.RelatedPerson.Id == r.RelatedPerson.Id)))
+                    //                                          .Where(rc => rc.connectionToRelated != null).ToList();
+
+                    //foreach (var related in relatedConnections)
+                    //{
+                    //    eRel? relation = null;
+
+                    //    //if (related.connectionToRelated.RelatedPerson.Id == related.originalConnection.RelatedPerson.Id &&
+                    //    //    related.connectionToRelated.Relationship.Type == related.originalConnection.Relationship.Type)
+                    //    //{
+                    //    //    _logger.LogInformation($"Connection between target id [{person.Id}] and related id [{related.originalConnection.RelatedPerson.Id}] allready exists.");
+                    //    //    continue;
+                    //    //}
+
+                    //    //if (related.originalConnection.Relationship.Type == eRel.Mother && IsSibling(related.connectionToRelated))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Wife && IsSibling(related.connectionToRelated))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Sister && IsSibling(related.originalConnection))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Husband && IsParent(related.connectionToRelated))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Daughter && IsSibling(related.connectionToRelated))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Wife && IsParent(related.connectionToRelated))
+                    //    //{
+                    //    //    relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    //    //}
+                    //    //else if (related.originalConnection.Relationship.Type == eRel.Father && IsSpouse(related.connectionToRelated))
+                    //    //{
+                    //    //    if (related.connectionToRelated.RelatedPerson.DTO.Age > related.originalConnection.TargetPerson.DTO.Age)
+                    //    //    {
+                    //    //        relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
+                    //    //    }
+                    //    //    else
+                    //    //    {
+                    //    //        relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    //    //    }
+                    //    //}
+                    //    //else
+                    //    //{
+
+                    //    //}
+
+
+                    //    if (relation.HasValue)
+                    //    {
+                    //        if (!ConnExists(person, related.originalConnection.TargetPerson, relation.Value))
+                    //        {
+                    //            var newConn = new ConnectionDTO(person.DTO, related.originalConnection.TargetPerson.DTO, relation);
+                    //            newConnections.Add(newConn);
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{related.originalConnection.TargetPerson.Id}]");
+                    //    }
+                    //}
 
                 }
                 catch (Exception e)

@@ -3,6 +3,7 @@ using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.UI.Converters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text.Json.Serialization;
 
 namespace FamilyConnections.UI.Models
@@ -106,6 +107,14 @@ namespace FamilyConnections.UI.Models
             } 
         }
 
+        public string Age
+        {
+            get
+            {
+                return _person.Age.ToString();
+            }
+        }
+
         //[JsonConverter(typeof(PersonViewModelDictionaryConverter))]
         //public Dictionary<PersonViewModel, eRel> Connections 
         //{
@@ -136,7 +145,11 @@ namespace FamilyConnections.UI.Models
                                                                      RelationshipInfo.Get(f.RelationshipId))).ToList();
         }
 
-        public List<ConnectionViewModel> Connections { get; set; }
+        public List<ConnectionViewModel> Connections 
+        { 
+            get; 
+            set; 
+        }
 
         //public Task BindModelAsync(ModelBindingContext bindingContext)
         //{
