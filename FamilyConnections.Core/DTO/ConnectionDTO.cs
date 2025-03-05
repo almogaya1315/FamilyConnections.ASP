@@ -41,6 +41,11 @@ namespace FamilyConnections.Core.DTO
                 _flat = value;
             }
         }
+
+        public override string ToString()
+        {
+            return $"{RelatedPerson.FullName} is {TargetPerson.FullName}'s {Relationship.Type}";
+        }
     }
 
     public class FlatConnection
@@ -54,6 +59,11 @@ namespace FamilyConnections.Core.DTO
             TargetId = targetId;
             RelatedId = relatedId;
             RelationshipId = relId;
+        }
+
+        public override string ToString()
+        {
+            return $"Target: {TargetId}, Related: {RelatedId}, RelId: {RelationshipId}";
         }
     }
 

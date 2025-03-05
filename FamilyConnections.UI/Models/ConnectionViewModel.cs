@@ -87,7 +87,7 @@ namespace FamilyConnections.UI.Models
 
         public override string ToString()
         {
-            return $"Target: {TargetPerson.FullName}, Related: {RelatedPerson.FullName}, Rel: {Relationship.Type}";
+            return $"{_connection.RelatedPerson.FullName} is {_connection.TargetPerson.FullName}'s {Relationship.Type}";
         }
     }
 }

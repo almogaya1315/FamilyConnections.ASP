@@ -1,4 +1,5 @@
-﻿using FamilyConnections.Core.DTO;
+﻿using FamilyConnections.BL.Handlers;
+using FamilyConnections.Core.DTO;
 using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.Core.Services;
@@ -7,6 +8,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
+using System;
+
 
 //using System.Web.Mvc;
 //using IConnection = FamilyConnections.Core.Interfaces.IConnection;
@@ -63,45 +66,94 @@ namespace FamilyConnections.UI.Models
                     // all persons that have first level connection with the person in iteration's related person
                     var connections = person.SetConnections(AllPersons);
                     var othersConnections = otherPersons.SelectMany(p => p.SetConnections(AllPersons)).ToList();
-                    var relatedConnections = othersConnections.Select(c => (Conn: c, connectionToRelated: connections.Find(r => c.RelatedPerson.Id == r.RelatedPerson.Id)))
+                    var relatedConnections = othersConnections.Select(c => (originalConnection: c, connectionToRelated: connections.Find(r => c.RelatedPerson.Id == r.RelatedPerson.Id)))
                                                               .Where(rc => rc.connectionToRelated != null).ToList();
 
                     foreach (var related in relatedConnections)
                     {
                         eRel? relation = null;
 
+                        if (related.connectionToRelated.RelatedPerson.Id == related.originalConnection.RelatedPerson.Id &&
+                            related.connectionToRelated.Relationship.Type == related.originalConnection.Relationship.Type)
+                        {
+                            _logger.LogInformation($"Connection between target id [{person.Id}] and related id [{related.originalConnection.RelatedPerson.Id}] allready exists.");
+                            continue;
+                        }
+
+                        // * then the person in iteration's relation to the related's connection in (inner) iteration...
+
                         // if the related's connection's relation is MOTHER or WIFE, 
                         // and the relation TO the related is SISTER or BROTHER,
-                        // then the person in iteration's relation to the related's connection in (inner) iteration...
-                        if (related.Conn.Relationship.Type == eRel.Mother && IsSibling(related.connectionToRelated))
+                        // then.. *
+                        if (related.originalConnection.Relationship.Type == eRel.Mother && IsSibling(related.connectionToRelated))
                         {
-                            // is NIECE or NEPHEW by gender, for the person
-                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                            // is NIECE or NEPHEW by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
                         }
-                        else if (related.Conn.Relationship.Type == eRel.Wife && IsSibling(related.connectionToRelated))
+                        else if (related.originalConnection.Relationship.Type == eRel.Wife && IsSibling(related.connectionToRelated))
                         {
-                            // is SisterInLaw or BrotherInLaw by gender, for the person
-                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                            // is SisterInLaw or BrotherInLaw by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
                         }
                         // if the related's connection's relation is SISTER, 
                         // and the relation OF the related is SISTER or BROTHER,
-                        // then the person in iteration's relation to the related's connection in (inner) iteration...
-                        else if (related.Conn.Relationship.Type == eRel.Sister && IsSibling(related.Conn))
+                        // then.. *
+                        else if (related.originalConnection.Relationship.Type == eRel.Sister && IsSibling(related.originalConnection))
                         {
-                            // is AUNT or UNCLE by gender, for the person
-                            relation = related.Conn.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                            // is AUNT or UNCLE by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
                         }
+                        // if the related's connection's relation is HUSBAND, 
+                        // and the relation TO the related is MOTHER or FATHER,
+                        // then.. *
+                        else if (related.originalConnection.Relationship.Type == eRel.Husband && IsParent(related.connectionToRelated))
+                        {
+                            // is MOTHER or FATHER by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                        }
+                        // if the related's connection's relation is DAUGHTER, 
+                        // and the relation TO the related is SISTER or BROTHER,
+                        // then.. *
+                        else if (related.originalConnection.Relationship.Type == eRel.Daughter && IsSibling(related.connectionToRelated))
+                        {
+                            // is MOTHER or FATHER by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                        }
+                        // if the related's connection's relation is WIFE, 
+                        // and the relation TO the related is MOTHER or FATHER,
+                        // then.. *
+                        else if (related.originalConnection.Relationship.Type == eRel.Wife && IsParent(related.connectionToRelated))
+                        {
+                            // is MOTHER or FATHER by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                        }
+                        // if the related's connection's relation is FATHER, 
+                        // and the relation TO the related is WIFE or HUSBAND,
+                        // then.. *
+                        else if (related.originalConnection.Relationship.Type == eRel.Father && IsSpouse(related.connectionToRelated))
+                        {
+                            //if (related.originalConnection.TargetPerson.Age)
 
+                            // is MOTHER or FATHER by gender
+                            relation = related.originalConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                        }
+                        else
+                        {
+
+                        }
 
 
                         if (relation.HasValue)
                         {
-                            var newConn = new ConnectionDTO(person.DTO, related.Conn.TargetPerson.DTO, relation);
-                            newConnections.Add(newConn);
+                            if (!ConnExists(person, related.originalConnection.TargetPerson, relation.Value))
+                            {
+                                var newConn = new ConnectionDTO(person.DTO, related.originalConnection.TargetPerson.DTO, relation);
+                                newConnections.Add(newConn);
+                            }
                         }
                         else
                         {
-                            _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{related.Conn.TargetPerson.Id}]");
+                            _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{related.originalConnection.TargetPerson.Id}]");
                         }
                     }
 
@@ -113,6 +165,21 @@ namespace FamilyConnections.UI.Models
             }
 
             return newConnections.ToArray();
+        }
+
+        private bool ConnExists(PersonViewModel person, PersonViewModel related, eRel relation)
+        {
+            return AllConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
+        }
+
+        private bool IsSpouse(ConnectionViewModel connectionToRelated)
+        {
+            return connectionToRelated.Relationship.Type == eRel.Wife || connectionToRelated.Relationship.Type == eRel.Husband;
+        }
+
+        private bool IsParent(ConnectionViewModel connectionToRelated)
+        {
+            return connectionToRelated.Relationship.Type == eRel.Mother || connectionToRelated.Relationship.Type == eRel.Father;
         }
 
         private bool IsSibling(ConnectionViewModel connectionToRelated)
