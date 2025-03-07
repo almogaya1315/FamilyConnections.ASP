@@ -73,7 +73,7 @@ public class HomeController : Controller
             var personsVm = personsDTO.Select(p => new PersonViewModel(p)).ToList();
             connectionsVm = GetConnectionsCache(personsVm, personsDTO);
             homePage = new HomeViewModel(personsSelect, personsVm, connectionsVm);
-            personsVm.ForEach(p => p.SetConnections(homePage.AllPersons));
+            //personsVm.ForEach(p => p.Connections(homePage.AllPersons));
             // Set the allPersons cache to the session
             _httpHandler.SetToSession(eKeys.allPersons, homePage.AllPersons);
         }
@@ -257,11 +257,11 @@ public class HomeController : Controller
         return View("Add", homePage.CurrentConnection);
     }
 
-    private void PopulateViewBags(HomeViewModel homePage)
+    private void PopulateViewBags(HomeViewModel homePage, eGender? gender = null)
     {
         ViewBag.Countries = homePage.Countries;
         ViewBag.AllPersonsItems = homePage.AllPersonsItems;
-        ViewBag.Relationships = homePage.Relationships;
+        ViewBag.Relationships = gender.HasValue ? homePage.RelationshipsBy(gender.Value) : homePage.Relationships;
         ViewBag.Genders = homePage.Genders;
     }
 
@@ -288,7 +288,8 @@ public class HomeController : Controller
             {
                 newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
                 newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
-                newConnection.TargetPerson.SetConnections(homePage.AllPersons, newConnection);
+                newConnection.TargetPerson.AddConnection(newConnection);
+                //newConnection.TargetPerson.SetConnections(homePage.AllPersons, newConnection);
 
                 UpdatePersistency(homePage, newConnection);
 

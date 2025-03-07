@@ -29,7 +29,7 @@
             <br />
             <div class="form-group">
                 <label asp-for="TargetPerson.Gender" class="control-label">Gender</label>
-                <select class="form-select-bordered" asp-for="TargetPerson.Gender" asp-items="ViewBag.Genders" @* name="CurrentConnection.TargetPerson.Gender" *@>
+                <select onchange="sendGenderToServer(this.value)" class="form-select-bordered" asp-for="TargetPerson.Gender" asp-items="ViewBag.Genders" @* name="CurrentConnection.TargetPerson.Gender" *@>
                     <option value="-1" selected="selected">-- Gender --</option>
                 </select>
                 <span id="TargetPerson_Gender" asp-validation-for="TargetPerson.Gender" class="text-danger"></span>
@@ -52,7 +52,7 @@
                 <span asp-validation-for="Relationship.Id" data-valmsg-replace="false" class="text-danger"></span>
             </div>
             <br />
-            <hr style="width:315%"/>
+            <hr style="width:315%" />
             <div class="form-group">
                 <input type="submit" value="Connect" class="btn btn-primary" />
             </div>

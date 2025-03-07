@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NuGet.Protocol.Plugins;
 using System;
+using System.Security.Policy;
+
 
 
 //using System.Web.Mvc;
@@ -38,6 +40,11 @@ namespace FamilyConnections.UI.Models
             Genders = EnumManager.GetEnum<eGender>(); //GetGenders();
         }
 
+        public List<SelectListItem> RelationshipsBy(eGender gender)
+        {
+            return Relationships.Where(r => RelationshipInfo.Gender(r.Value) == gender).ToList();
+        }
+
         public List<SelectListItem> Countries { get; set; }
         public List<SelectListItem> Relationships { get; set; }
         public List<SelectListItem> AllPersonsItems { get; set; }
@@ -60,8 +67,8 @@ namespace FamilyConnections.UI.Models
             {
                 try
                 {
-                    var personConnections = person.SetConnections(AllPersons);
-                    var relatedConnections = personConnections.SelectMany(c => c.RelatedPerson.Connections).ToList();
+                    var personConnections = person.GetConnections(AllPersons); //SetConnections(AllPersons);
+                    var relatedConnections = personConnections.SelectMany(c => c.RelatedPerson.GetConnections(AllPersons)).ToList();
                     foreach (var relatedConnection in relatedConnections)
                     {
                         eRel? relation = null;
@@ -74,63 +81,45 @@ namespace FamilyConnections.UI.Models
                         //    continue;
                         //}
 
-                        // person's mother has sister or brother
-                        if (personConnection.Relationship.Type == eRel.Mother && relatedConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
+                        // person's Sister or Brother
+                        if (IsSibling(personConnection))
                         {
-                            // person will have aunt or uncle
-                            relation = relatedConnection.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                            // has Husband or Wife
+                            if (IsSpouse(relatedConnection))
+                            {
+                                // person will have SisterInLaw or BrotherInLaw
+                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                            }
+                            // has Daughter or Son
+                            else if (IsChild(relatedConnection))
+                            {
+                                // person will have Niece or Nephew
+                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                            }
+                            // has Mother or Father
+                            else if (IsParent(relatedConnection))
+                            {
+                                // person will have Mother or Father
+                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                            }
                         }
-                        // person's wife has sister or brother
-                        else if(personConnection.Relationship.Type == eRel.Wife && relatedConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
+                        // person's Husband or Wife
+                        else if (IsSpouse(personConnection))
                         {
-                            // person will sisterInLaw or brotherInLaw
-                            relation = relatedConnection.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+
+                        }
+                        else
+                        {
+
                         }
 
-                        //if (personConnection.Relationship.Type == eRel.Mother && relatedConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Wife && relatedConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Sister && personConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Husband && relatedConnection.Relationship.Type == (eRel.Mother & eRel.Father))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Daughter && relatedConnection.Relationship.Type == (eRel.Sister & eRel.Brother))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Wife && relatedConnection.Relationship.Type == (eRel.Mother & eRel.Father))
-                        //{
-                        //    relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        //}
-                        //else if (personConnection.Relationship.Type == eRel.Father && relatedConnection.Relationship.Type == (eRel.Wife & eRel.Husband))
-                        //{
-                        //    if (relatedConnection.RelatedPerson.DTO.Age > personConnection.TargetPerson.DTO.Age)
-                        //    {
-                        //        relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
-                        //    }
-                        //    else
-                        //    {
-                        //        relation = personConnection.TargetPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //}
+
 
                         if (relation.HasValue)
                         {
                             if (!ConnExists(person, relatedConnection.TargetPerson, relation.Value, ref newConnections))
                             {
-                                var newConn = new ConnectionDTO(person.DTO, relatedConnection.TargetPerson.DTO, relation);
+                                var newConn = new ConnectionDTO(person.DTO, relatedConnection.RelatedPerson.DTO, relation);
                                 newConnections.Add(newConn);
                             }
                         }
@@ -156,19 +145,24 @@ namespace FamilyConnections.UI.Models
             return existsInNew || existsInAll;
         }
 
-        private bool IsSpouse(ConnectionViewModel connectionToRelated)
+        private bool IsSpouse(ConnectionViewModel relatedConnection)
         {
-            return connectionToRelated.Relationship.Type == eRel.Wife || connectionToRelated.Relationship.Type == eRel.Husband;
+            return relatedConnection.Relationship.Type == eRel.Wife || relatedConnection.Relationship.Type == eRel.Husband;
         }
 
-        private bool IsParent(ConnectionViewModel connectionToRelated)
+        private bool IsChild(ConnectionViewModel relatedConnection)
         {
-            return connectionToRelated.Relationship.Type == eRel.Mother || connectionToRelated.Relationship.Type == eRel.Father;
+            return relatedConnection.Relationship.Type == eRel.Daughter || relatedConnection.Relationship.Type == eRel.Son;
         }
 
-        private bool IsSibling(ConnectionViewModel connectionToRelated)
+        private bool IsParent(ConnectionViewModel relatedConnection)
         {
-            return connectionToRelated.Relationship.Type == eRel.Sister || connectionToRelated.Relationship.Type == eRel.Brother;
+            return relatedConnection.Relationship.Type == eRel.Mother || relatedConnection.Relationship.Type == eRel.Father;
+        }
+
+        private bool IsSibling(ConnectionViewModel relatedConnection)
+        {
+            return relatedConnection.Relationship.Type == eRel.Sister || relatedConnection.Relationship.Type == eRel.Brother;
         }
 
         internal void SetCurrentConnections()

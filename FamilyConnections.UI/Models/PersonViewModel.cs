@@ -2,6 +2,7 @@
 using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.UI.Converters;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text.Json.Serialization;
@@ -95,7 +96,7 @@ namespace FamilyConnections.UI.Models
                 _person.PlaceOfBirth = value;
             }
         }
-        public eGender? Gender 
+        public eGender? Gender
         {
             get
             {
@@ -104,7 +105,7 @@ namespace FamilyConnections.UI.Models
             set
             {
                 _person.Gender = value;
-            } 
+            }
         }
 
         public string Age
@@ -115,40 +116,66 @@ namespace FamilyConnections.UI.Models
             }
         }
 
-        //[JsonConverter(typeof(PersonViewModelDictionaryConverter))]
-        //public Dictionary<PersonViewModel, eRel> Connections 
+        public List<ConnectionViewModel> GetConnections(List<PersonViewModel> personsScope)
+        {
+            return _person.FlatConnections.Select(f => new ConnectionViewModel(
+                                                       personsScope.Find(p => p.Id == f.TargetId),
+                                                       personsScope.Find(p => p.Id == f.RelatedId),
+                                                       RelationshipInfo.Get(f.RelationshipId))).ToList();
+        }
+
+        internal void AddConnection(ConnectionViewModel newConnection)
+        {
+            newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
+            _person.FlatConnections.Add(newConnection.DTO.Flat);
+        }
+
+        //public List<ConnectionViewModel> SetConnections(List<PersonViewModel> persons, ConnectionViewModel newConnection = null)
+        //{
+        //    var personsScope = persons.ToList();
+        //    if (!personsScope.Exists(p => p.Id == _person.Id)) personsScope.Add(this);
+
+        //    if (newConnection != null)
+        //    {
+        //        newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
+        //        _person.FlatConnections.Add(newConnection.DTO.Flat);
+        //    }
+
+        //    Connections = SetConnections(personsScope);
+        //    foreach (var c in Connections)
+        //    {
+        //        c.TargetPerson.Connections = Connections;
+        //        c.RelatedPerson.Connections = SetConnections(personsScope);
+        //    }
+
+        //    //Connections.ForEach(c => c.RelatedPerson.Connections = SetConnections(personsScope));
+        //    return Connections;
+        //}
+
+        //private List<ConnectionViewModel> SetConnections(List<PersonViewModel> personsScope)
+        //{
+        //    return _person.FlatConnections.Select(f => new ConnectionViewModel(
+        //                                               personsScope.Find(p => p.Id == f.TargetId),
+        //                                               personsScope.Find(p => p.Id == f.RelatedId),
+        //                                               RelationshipInfo.Get(f.RelationshipId))).ToList();
+        //}
+
+        //private List<ConnectionViewModel> _connections;
+        //public List<ConnectionViewModel> Connections 
         //{
         //    get
         //    {
-        //        return _person.Connections.ToDictionary(k => new PersonViewModel(k.Key), v => v.Value);
+        //        return _connections;
         //    }
         //    set
         //    {
-        //        _person.Connections = value.ToDictionary(k => k.Key.DTO, v => v.Value);
+        //        _connections = value;
         //    }
         //}
 
-        public List<ConnectionViewModel> SetConnections(List<PersonViewModel> persons, ConnectionViewModel newConnection = null)
+        public override string ToString()
         {
-            var personsScope = persons.ToList();
-            if (!personsScope.Exists(p => p.Id == _person.Id)) personsScope.Add(this);
-
-            if (newConnection != null)
-            {
-                newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
-                _person.FlatConnections.Add(newConnection.DTO.Flat);
-            }
-
-            return Connections = _person.FlatConnections.Select(f => new ConnectionViewModel(
-                                                                     personsScope.Find(p => p.Id == f.TargetId),
-                                                                     personsScope.Find(p => p.Id == f.RelatedId),
-                                                                     RelationshipInfo.Get(f.RelationshipId))).ToList();
-        }
-
-        public List<ConnectionViewModel> Connections 
-        { 
-            get; 
-            set; 
+            return $"{_person.Id}-{_person.FullName}";
         }
 
         //public Task BindModelAsync(ModelBindingContext bindingContext)

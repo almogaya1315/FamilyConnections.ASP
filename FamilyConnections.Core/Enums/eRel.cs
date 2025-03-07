@@ -25,5 +25,7 @@ namespace FamilyConnections.Core.Enums
         FatherInLaw,
         BrotherInLaw,
         SisterInLaw,
+        GrandMother,
+        GrandFather,
     }
 }

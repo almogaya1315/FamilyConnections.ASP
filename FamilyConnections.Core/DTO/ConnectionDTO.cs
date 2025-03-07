@@ -1,4 +1,5 @@
 ﻿using FamilyConnections.Core.Enums;
+using FamilyConnections.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -104,6 +105,46 @@ namespace FamilyConnections.Core.DTO
         public static eRel Get(int relId)
         {
             return (eRel)relId;
+        }
+
+        public static eGender? Gender(string relIdStr)
+        {
+            var relId = int.Parse(relIdStr);
+            var eRel = Enum.GetValues(typeof(eRel)).Cast<eRel>().First(e => (int)e == relId);
+            return Gender(eRel);
+        }
+
+        public static eGender? Gender(eRel rel)
+        {
+            eGender? gender = null;
+
+            switch (rel)
+            {
+                case eRel.Mother:
+                case eRel.Sister:
+                case eRel.Daughter:
+                case eRel.Wife:
+                case eRel.Aunt:
+                case eRel.Niece:
+                case eRel.MotherInLaw:
+                case eRel.SisterInLaw:
+                    gender = eGender.Female;
+                    break;
+                case eRel.Father:
+                case eRel.Brother:
+                case eRel.Son:
+                case eRel.Husband:
+                case eRel.Uncle:
+                case eRel.Nephew:
+                case eRel.FatherInLaw:
+                case eRel.BrotherInLaw:
+                    gender = eGender.Male;
+                    break;
+                case eRel.Cousin:
+                    break;
+            }
+
+            return gender;
         }
     }
 }
