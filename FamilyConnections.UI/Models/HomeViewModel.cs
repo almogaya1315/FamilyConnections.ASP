@@ -38,14 +38,14 @@ namespace FamilyConnections.UI.Models
             CurrentPerson = new PersonViewModel();
             CurrentConnection = new ConnectionViewModel();
             Countries = new List<SelectListItem> { new SelectListItem("Israel", "1") };
-            Relationships = EnumManager.GetEnum<eRel>(); //GetRelationships();
+            Relationships = EnumManager.GetEnum<eRel>(toIndex: 15); //GetRelationships();
             Genders = EnumManager.GetEnum<eGender>(); //GetGenders();
         }
 
-        public List<SelectListItem> RelationshipsBy(eGender gender)
-        {
-            return Relationships.Where(r => RelationshipInfo.Gender(r.Value) == gender).ToList();
-        }
+        //public List<SelectListItem> RelationshipsBy(eGender gender)
+        //{
+        //    return Relationships.Where(r => RelationshipInfo.Gender(r.Value) == gender).ToList();
+        //}
 
         public List<SelectListItem> Countries { get; set; }
         public List<SelectListItem> Relationships { get; set; }
@@ -80,156 +80,37 @@ namespace FamilyConnections.UI.Models
                         eRel? relation = null;
                         var personConnection = personConnections.Find(pc => pc.RelatedPerson.Id == relatedConnection.TargetPerson.Id);
 
-                        //ComplexRel -> Step,InLaw,Great,Ex
+                        //ComplexRel -> Step, InLaw, Great, Ex
                         eRel? possibleComplexRel = null;
 
-                        //if (relatedConnection.RelatedPerson.Id == personConnection.RelatedPerson.Id &&
-                        //    relatedConnection.Relationship.Type == personConnection.Relationship.Type)
-                        //{
-                        //    _logger.LogInformation($"Connection between target id [{person.Id}] and related id [{relatedConnection.Id}] allready exists.");
-                        //    continue;
-                        //}
-
-                        //person.DTO.Init(personConnection.DTO, relatedConnection.DTO);
-                        //relation = person.DTO.HasSibling().That().HasSpouse().Then().IsSiblingInLaw()
-                        //                                  .Or().HasChild().Then().IsSiblingChild()
-                        //                                  .Or().HasParent().Then().IsParent()
-                        //                                  .Or().HasSibling().Then().IsSibling()
-                        //                 .Or().HasSpouse().That().HasXXX().Then().IsXXX() 
-                        //                                  .Or().HasXXX().Then().IsXXX()
-                        //                                  .GetRel();
-
-                        //person's Parent(Mother, Father)
-                        if (HasParent(personConnection.DTO))
-                        {
-                            //HasParent
-                            if (HasParent(relatedConnection.DTO))
-                            {
-                                //GrandParent(GrandMother, GarndFather)
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.GrandMother : eRel.GrandFather;
-                            }
-                            //HasChild
-                            else if (HasChild(relatedConnection.DTO))
-                            {
-                                //Sibling(Sister, Brother)
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Sister : eRel.Brother;
-                            }
-                            //HasSibling
-                            else if (HasSibling(relatedConnection.DTO))
-                            {
-                                //ParentSibling(Aunt, Uncle)
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
-                            }
-                            //HasSpouse
-                            else if (HasSpouse(relatedConnection.DTO))
-                            {
-                                //Parent
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                                //StepParent
-                                possibleComplexRel = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
-                            }
-                        }
-                        //person's Child(Daughter, Son)
-                        else if (HasChild(personConnection.DTO))
-                        {
-                            //HasParent
-                            if (HasParent(relatedConnection.DTO))
-                            {
-                                //Spouse(Wife, Husband)
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Wife : eRel.Husband;
-                                //ExPartner
-                                possibleComplexRel = eRel.ExPartner;
-                            }
-                            //HasChild
-                            else if (HasChild(relatedConnection.DTO))
-                            {
-                                //GrandChild
-                                relation = eRel.GrandChild;
-                            }
-                            //HasSibling
-                            else if (HasSibling(relatedConnection.DTO))
-                            {
-                                //Child
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
-                                //StepChild
-                                possibleComplexRel = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
-                            }
-                            //HasSpouse
-                            else if (HasSpouse(relatedConnection.DTO))
-                            {
-                                //ChildInLaw
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.DaughterInLaw : eRel.SonInLaw;
-                            }
-                        }
-                        //person's Sibling
-                        else if (HasSibling(personConnection.DTO))
-                        {
-                            //HasParent
-                            if (HasParent(relatedConnection.DTO))
-                            {
-                                //Parent
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                                //StepParent
-                                possibleComplexRel = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
-                            }
-                            //HasChild
-                            else if (HasChild(relatedConnection.DTO))
-                            {
-                                //SiblingChild(Niece, Nephew)
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
-                            }
-                            //HasSibling
-                            else if (HasSibling(relatedConnection.DTO))
-                            {
-                                //Sibling
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Sister : eRel.Brother;
-                                //StepSibling
-                                possibleComplexRel = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                            }
-                            //HasSpouse
-                            else if (HasSpouse(relatedConnection.DTO))
-                            {
-                                //SiblingInLaw
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                            }
-                        }
-                        //person's Spouse
-                        else if (HasSpouse(personConnection.DTO))
-                        {
-                            //HasParent
-                            if (HasParent(relatedConnection.DTO))
-                            {
-                                //ParentInLaw
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.MotherInLaw : eRel.FatherInLaw;
-                            }
-                            //HasChild
-                            else if (HasChild(relatedConnection.DTO))
-                            {
-                                //Child
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
-                                //StepChild
-                                possibleComplexRel = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
-                            }
-                            //HasSibling
-                            else if (HasSibling(relatedConnection.DTO))
-                            {
-                                //SiblingInLaw
-                                relation = relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                            }
-                        }
-                        else
-                        {
-                            unknownsConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
-                        }
+                        ConnectionsHandler.SetDTOs(personConnection.DTO, relatedConnection.DTO);
+                        relation = ConnectionsHandler.CheckParent(out possibleComplexRel, ref unknownsConnections_debug);
+                        if (!relation.HasValue) relation = ConnectionsHandler.CheckChild(out possibleComplexRel, ref unknownsConnections_debug);
+                        if (!relation.HasValue) relation = ConnectionsHandler.CheckSibling(out possibleComplexRel, ref unknownsConnections_debug);
+                        if (!relation.HasValue) relation = ConnectionsHandler.CheckSpouse(out possibleComplexRel, ref unknownsConnections_debug);
+                        else unknownsConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
 
 
                         if (relation.HasValue)
                         {
+                            //connection for person
                             if (!ConnExists(person, relatedConnection.RelatedPerson, relation.Value, ref newConnections))
                             {
                                 var newConn = new ConnectionDTO(person.DTO, relatedConnection.RelatedPerson.DTO, relation, possibleComplexRel);
                                 if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
                                 newConnections.Add(newConn);
+                                person.AddConnection(new ConnectionViewModel(newConn));
+                            }
+
+                            //connection for related
+                            relation = RelationshipInfo.Opposite(relation.Value, person.Gender.Value);
+                            if (possibleComplexRel.HasValue) possibleComplexRel = RelationshipInfo.Opposite(possibleComplexRel.Value, person.Gender.Value);
+                            if (!ConnExists(relatedConnection.RelatedPerson, person, relation.Value, ref newConnections))
+                            {
+                                var newConn = new ConnectionDTO(relatedConnection.RelatedPerson.DTO, person.DTO, relation, possibleComplexRel);
+                                if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
+                                newConnections.Add(newConn);
+                                relatedConnection.RelatedPerson.AddConnection(new ConnectionViewModel(newConn));
                             }
                         }
                         else
@@ -252,26 +133,6 @@ namespace FamilyConnections.UI.Models
             var existsInNew = newConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
             var existsInAll = AllConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
             return existsInNew || existsInAll;
-        }
-
-        private bool HasSpouse(ConnectionDTO relatedConnection)
-        {
-            return relatedConnection.Relationship.Type == eRel.Wife || relatedConnection.Relationship.Type == eRel.Husband;
-        }
-
-        private bool HasChild(ConnectionDTO relatedConnection)
-        {
-            return relatedConnection.Relationship.Type == eRel.Daughter || relatedConnection.Relationship.Type == eRel.Son;
-        }
-
-        private bool HasParent(ConnectionDTO relatedConnection)
-        {
-            return relatedConnection.Relationship.Type == eRel.Mother || relatedConnection.Relationship.Type == eRel.Father;
-        }
-
-        private bool HasSibling(ConnectionDTO relatedConnection)
-        {
-            return relatedConnection.Relationship.Type == eRel.Sister || relatedConnection.Relationship.Type == eRel.Brother;
         }
 
         internal void SetCurrentConnections()

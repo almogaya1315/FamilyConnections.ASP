@@ -29,7 +29,8 @@
             <br />
             <div class="form-group">
                 <label asp-for="TargetPerson.Gender" class="control-label">Gender</label>
-                <select onchange="toggleRelationships(this.value)" class="form-select-bordered" asp-for="TargetPerson.Gender" asp-items="ViewBag.Genders" @* name="CurrentConnection.TargetPerson.Gender" *@>
+                @* onchange="toggleRelationships(this.value)" *@
+                <select class="form-select-bordered" asp-for="TargetPerson.Gender" asp-items="ViewBag.Genders" @* name="CurrentConnection.TargetPerson.Gender" *@>
                     <option value="-1" selected="selected">-- Gender --</option>
                 </select>
                 <span id="TargetPerson_Gender" asp-validation-for="TargetPerson.Gender" class="text-danger"></span>
@@ -43,22 +44,29 @@
                 <span asp-validation-for="RelatedPerson.Id" class="text-danger"></span>
             </div>
             <br />
-            <div id="FemaleRelationships" class="form-group">
-                <label style="display:block" asp-for="Relationship.FemaleRelId" class="control-label">As....</label>
-                <select class="form-select-bordered" asp-for="Relationship.FemaleRelId" asp-items="ViewBag.FemaleRelationships"
-                @* data-val-required="Required!" data-val="true" *@ @* name="CurrentConnection.Relationship" *@>
+            <div class="form-group">
+                <label style="display:block" asp-for="Relationship.Id" class="control-label">As....</label>
+                <select class="form-select-bordered" asp-for="Relationship.Id" asp-items="ViewBag.Relationships">
                     <option value="-1" selected="selected">-- Relationship --</option>
+                </select>
+                <span asp-validation-for="Relationship.Id" data-valmsg-replace="false" class="text-danger"></span>
+            </div>
+          @*<div id="FemaleRelationships" class="form-group">
+                <label style="display:block" asp-for="Relationship.FemaleRelId" class="control-label">As....</label>
+                <select class="form-select-bordered" asp-for="Relationship.FemaleRelId" asp-items="ViewBag.FemaleRelationships"*@
+                @* data-val-required="Required!" data-val="true" *@ @* name="CurrentConnection.Relationship" *@
+                    @*<option value="-1" selected="selected">-- Relationship --</option>
                 </select>
                 <span asp-validation-for="Relationship.FemaleRelId" data-valmsg-replace="false" class="text-danger"></span>
             </div>
             <div id="MaleRelationships" class="form-group" style="display:none">
                 <label style="display:block" asp-for="Relationship.MaleRelId" class="control-label">As....</label>
-                <select class="form-select-bordered" asp-for="Relationship.MaleRelId" asp-items="ViewBag.MaleRelationships"
-                @* data-val-required="Required!" data-val="true" *@ @* name="CurrentConnection.Relationship" *@>
-                    <option value="-1" selected="selected">-- Relationship --</option>
+                <select class="form-select-bordered" asp-for="Relationship.MaleRelId" asp-items="ViewBag.MaleRelationships"*@
+                @* data-val-required="Required!" data-val="true" *@ @* name="CurrentConnection.Relationship" *@
+                    @*<option value="-1" selected="selected">-- Relationship --</option>
                 </select>
                 <span asp-validation-for="Relationship.MaleRelId" data-valmsg-replace="false" class="text-danger"></span>
-            </div>
+            </div>*@
             <br />
             <hr style="width:315%" />
             <div class="form-group">
@@ -90,22 +98,22 @@
             // }
         });
 
-        function toggleRelationships(selectedGender) {
-            var maleDiv = document.getElementById("MaleRelationships");
-            var femaleDiv = document.getElementById("FemaleRelationships");
-            var maleSelect = maleDiv.querySelector("select");
-            var femaleSelect = femaleDiv.querySelector("select");
+        // function toggleRelationships(selectedGender) {
+        //     var maleDiv = document.getElementById("MaleRelationships");
+        //     var femaleDiv = document.getElementById("FemaleRelationships");
+        //     var maleSelect = maleDiv.querySelector("select");
+        //     var femaleSelect = femaleDiv.querySelector("select");
 
-            if (selectedGender == "0") {
-                maleDiv.style.display = "block";
-                femaleDiv.style.display = "none";
-                femaleSelect.selectedIndex = 0;
-            } else {
-                maleDiv.style.display = "none";
-                femaleDiv.style.display = "block";
-                maleSelect.selectedIndex = 0;
-            }
-        }
+        //     if (selectedGender == "1") {
+        //         maleDiv.style.display = "block";
+        //         femaleDiv.style.display = "none";
+        //         femaleSelect.selectedIndex = 0;
+        //     } else {
+        //         maleDiv.style.display = "none";
+        //         femaleDiv.style.display = "block";
+        //         maleSelect.selectedIndex = 0;
+        //     }
+        // }
     </script>
 
 }

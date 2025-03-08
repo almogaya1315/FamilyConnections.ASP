@@ -139,6 +139,7 @@ namespace FamilyConnections.DAL.Contexts
 
         public void AddPerson(PersonDTO newPerson)
         {
+            newPerson.FlatConnections.Clear();
             File.AppendAllLines(AllPersonsPath, new List<string> { JsonConvert.SerializeObject(newPerson) });
 
             //var persons = GetPersons();

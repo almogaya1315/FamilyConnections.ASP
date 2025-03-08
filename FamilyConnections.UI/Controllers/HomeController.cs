@@ -257,13 +257,13 @@ public class HomeController : Controller
         return View("Add", homePage.CurrentConnection);
     }
 
-    private void PopulateViewBags(HomeViewModel homePage, eGender? gender = null)
+    private void PopulateViewBags(HomeViewModel homePage)
     {
         ViewBag.Countries = homePage.Countries;
         ViewBag.AllPersonsItems = homePage.AllPersonsItems;
-        //ViewBag.Relationships = gender.HasValue ? homePage.RelationshipsBy(gender.Value) : homePage.Relationships;
-        ViewBag.FemaleRelationships = homePage.RelationshipsBy(eGender.Female);
-        ViewBag.MaleRelationships = homePage.RelationshipsBy(eGender.Male);
+        ViewBag.Relationships = homePage.Relationships;
+        //ViewBag.FemaleRelationships = homePage.RelationshipsBy(eGender.Female);
+        //ViewBag.MaleRelationships = homePage.RelationshipsBy(eGender.Male);
         ViewBag.Genders = homePage.Genders;
     }
 

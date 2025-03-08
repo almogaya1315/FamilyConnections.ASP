@@ -188,5 +188,90 @@ namespace FamilyConnections.Core.DTO
             if (gen != gender) output = null;
             return output;
         }
+
+        public static eRel Opposite(eRel relation, eGender gender)
+        {
+            eRel output = eRel.FarRel;
+
+            switch (relation)
+            {
+                case eRel.Mother:
+                case eRel.Father:
+                    output = gender == eGender.Female ? eRel.Daughter : eRel.Son;
+                    break;
+                case eRel.Sister:
+                case eRel.Brother:
+                    output = gender == eGender.Female ? eRel.Sister : eRel.Brother;
+                    break;
+                case eRel.Daughter:
+                case eRel.Son:
+                    output = gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    break;
+                case eRel.Wife:
+                    output = eRel.Husband;
+                    break;
+                case eRel.Husband:
+                    output = eRel.Wife;
+                    break;
+                case eRel.Aunt:
+                case eRel.Uncle:
+                    output = gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                    break;
+                case eRel.Cousin:
+                    output = eRel.Cousin;
+                    break;
+                case eRel.Niece:
+                case eRel.Nephew:
+                    output = gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    break;
+                case eRel.GrandMother:
+                case eRel.GrandFather:
+                    output = eRel.GrandChild;
+                    break;
+                case eRel.GrandChild:
+                    output = gender == eGender.Female ? eRel.GrandMother : eRel.GrandFather;
+                    break;
+                case eRel.MotherInLaw:
+                case eRel.FatherInLaw:
+                    output = gender == eGender.Female ? eRel.DaughterInLaw : eRel.SonInLaw;
+                    break;
+                case eRel.SisterInLaw:
+                case eRel.BrotherInLaw:
+                    output = gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                    break;
+                case eRel.DaughterInLaw:
+                case eRel.SonInLaw:
+                    output = gender == eGender.Female ? eRel.MotherInLaw : eRel.FatherInLaw;
+                    break;
+                case eRel.StepMother:
+                case eRel.StepFather:
+                    output = gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
+                    break;
+                case eRel.StepSister:
+                case eRel.StepBrother:
+                    output = gender == eGender.Female ? eRel.StepSister : eRel.StepBrother;
+                    break;
+                case eRel.StepDaughter:
+                case eRel.StepSon:
+                    output = gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
+                    break;
+                case eRel.ExPartner:
+                    output = eRel.ExPartner;
+                    break;
+                case eRel.GreatGrandMother:
+                case eRel.GreatGrandFather:
+                    output = gender == eGender.Female ? eRel.GreatGrandDaughter : eRel.GreatGrandSon;
+                    break;
+                case eRel.GreatGrandDaughter:
+                case eRel.GreatGrandSon:
+                    output = gender == eGender.Female ? eRel.GreatGrandMother : eRel.GreatGrandFather;
+                    break;
+                case eRel.FarRel:
+                    output = eRel.FarRel;
+                    break;
+            }
+
+            return output;
+        }
     }
 }
