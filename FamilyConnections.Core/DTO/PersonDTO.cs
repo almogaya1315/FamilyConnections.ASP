@@ -30,6 +30,7 @@ namespace FamilyConnections.Core.DTO
             }
             set
             {
+                value = value.Contains('-') ? value.Remove(value.IndexOf('-')) : value;
                 DateOfBirth = DateTime.Parse(value);
             }
         }

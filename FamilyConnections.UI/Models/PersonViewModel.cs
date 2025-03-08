@@ -1,4 +1,5 @@
-﻿using FamilyConnections.Core.DTO;
+﻿using FamilyConnections.BL.Handlers;
+using FamilyConnections.Core.DTO;
 using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Interfaces;
 using FamilyConnections.UI.Converters;
@@ -78,7 +79,7 @@ namespace FamilyConnections.UI.Models
         {
             get
             {
-                return _person.DateOfBirthStr;
+                return $"{_person.DateOfBirthStr} -{Age}";
             }
             set
             {
@@ -112,7 +113,7 @@ namespace FamilyConnections.UI.Models
         {
             get
             {
-                return _person.Age.ToString();
+                return $"> {_person.Age.ToString()}y";
             }
         }
 

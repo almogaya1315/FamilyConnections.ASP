@@ -261,7 +261,9 @@ public class HomeController : Controller
     {
         ViewBag.Countries = homePage.Countries;
         ViewBag.AllPersonsItems = homePage.AllPersonsItems;
-        ViewBag.Relationships = gender.HasValue ? homePage.RelationshipsBy(gender.Value) : homePage.Relationships;
+        //ViewBag.Relationships = gender.HasValue ? homePage.RelationshipsBy(gender.Value) : homePage.Relationships;
+        ViewBag.FemaleRelationships = homePage.RelationshipsBy(eGender.Female);
+        ViewBag.MaleRelationships = homePage.RelationshipsBy(eGender.Male);
         ViewBag.Genders = homePage.Genders;
     }
 

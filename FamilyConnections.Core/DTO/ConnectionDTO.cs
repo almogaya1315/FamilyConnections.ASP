@@ -1,5 +1,6 @@
 ﻿using FamilyConnections.Core.Enums;
 using FamilyConnections.Core.Services;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,11 +18,11 @@ namespace FamilyConnections.Core.DTO
         public PersonDTO RelatedPerson { get; set; }
         public RelationshipInfo Relationship { get; set; }
 
-        public ConnectionDTO(PersonDTO target, PersonDTO related, eRel? rel)
+        public ConnectionDTO(PersonDTO target, PersonDTO related, eRel? rel, eRel? posibleComplexRel = null)
         {
             TargetPerson = target;
             RelatedPerson = related;
-            Relationship = new RelationshipInfo(rel);
+            Relationship = new RelationshipInfo(rel, posibleComplexRel);
             Flat = new FlatConnection(TargetPerson.Id, RelatedPerson.Id, Relationship.Id);
         }
         public ConnectionDTO()
@@ -35,7 +36,7 @@ namespace FamilyConnections.Core.DTO
         {
             get
             {
-                return _flat; 
+                return _flat;
             }
             set
             {
@@ -70,19 +71,20 @@ namespace FamilyConnections.Core.DTO
 
     public class RelationshipInfo
     {
-        public RelationshipInfo() 
+        public RelationshipInfo()
         {
             Id = -1;
         }
 
-        public RelationshipInfo(eRel? type)
+        public RelationshipInfo(eRel? type, eRel? possibleComplexRel)
         {
             Type = type;
             Id = Type.HasValue ? (int)Type : -1;
+            PossibleComplexRel = possibleComplexRel;
         }
 
         public int Id { get; set; }
-        public eRel? Type 
+        public eRel? Type
         {
             get
             {
@@ -93,6 +95,7 @@ namespace FamilyConnections.Core.DTO
                 Id = (int)value;
             }
         }
+        public eRel? PossibleComplexRel { get; set; }
 
         public void SetError(eError error)
         {
@@ -145,6 +148,45 @@ namespace FamilyConnections.Core.DTO
             }
 
             return gender;
+        }
+
+        public int? FemaleRelId
+        {
+            get
+            {
+                return GetRelId(eGender.Female);
+            }
+            set
+            {
+                SetRelId(value, eGender.Female);
+            }
+        }
+        public int? MaleRelId
+        {
+            get
+            {
+                return GetRelId(eGender.Male);
+            }
+            set
+            {
+                SetRelId(value, eGender.Male);
+            }
+        }
+
+        private void SetRelId(int? value, eGender gender)
+        {
+            if (value.HasValue && value.Value > -1) Id = value.Value;
+            if (gender == eGender.Male && FemaleRelId != null) FemaleRelId = null;
+            if (gender == eGender.Female && MaleRelId != null) MaleRelId = null;
+        }
+
+        private int? GetRelId(eGender gender)
+        {
+            if (Id == -1) return null;
+            int? output = Id;
+            var gen = Gender(Type.Value);
+            if (gen != gender) output = null;
+            return output;
         }
     }
 }
