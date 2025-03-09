@@ -10,3 +10,11 @@
 {"TargetId":4,"RelatedId":1,"RelationshipId":1}
 {"TargetId":4,"RelatedId":2,"RelationshipId":0}
 {"TargetId":4,"RelatedId":3,"RelationshipId":2}
+{"TargetId":5,"RelatedId":2,"RelationshipId":2}
+{"TargetId":5,"RelatedId":1,"RelationshipId":19}
+{"TargetId":1,"RelatedId":5,"RelationshipId":18}
+{"TargetId":2,"RelatedId":5,"RelationshipId":2}
+{"TargetId":5,"RelatedId":3,"RelationshipId":11}
+{"TargetId":3,"RelatedId":5,"RelationshipId":8}
+{"TargetId":5,"RelatedId":4,"RelationshipId":11}
+{"TargetId":4,"RelatedId":5,"RelationshipId":8}

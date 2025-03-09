@@ -64,7 +64,7 @@ namespace FamilyConnections.UI.Models
             var newConnections = new List<ConnectionDTO>();
 
             var possibleComplex_debug = new List<ConnectionDTO>();
-            var unknownsConnections_debug = new List<(ConnectionDTO Target, ConnectionDTO Related)>();
+            var FarRelConnections_debug = new List<(ConnectionDTO Target, ConnectionDTO Related)>();
 
             // reverse to start with the new added person
             AllPersons.Reverse();
@@ -80,43 +80,44 @@ namespace FamilyConnections.UI.Models
                         eRel? relation = null;
                         var personConnection = personConnections.Find(pc => pc.RelatedPerson.Id == relatedConnection.TargetPerson.Id);
 
-                        //ComplexRel -> Step, InLaw, Great, Ex
+                        //ComplexRel -> Step, InLaw, Great, Ex, Far
                         eRel? possibleComplexRel = null;
 
-                        ConnectionsHandler.SetDTOs(personConnection.DTO, relatedConnection.DTO);
-                        relation = ConnectionsHandler.CheckParent(out possibleComplexRel, ref unknownsConnections_debug);
-                        if (!relation.HasValue) relation = ConnectionsHandler.CheckChild(out possibleComplexRel, ref unknownsConnections_debug);
-                        if (!relation.HasValue) relation = ConnectionsHandler.CheckSibling(out possibleComplexRel, ref unknownsConnections_debug);
-                        if (!relation.HasValue) relation = ConnectionsHandler.CheckSpouse(out possibleComplexRel, ref unknownsConnections_debug);
-                        else unknownsConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
+                        ConnectionsHandler.InitConnection(personConnection.DTO, relatedConnection.DTO, AllConnections.Select(c => c.DTO));
+                        relation = ConnectionsHandler.FindRelation(out possibleComplexRel);
+                        //ConnectionsHandler.SetDTOs(personConnection.DTO, relatedConnection.DTO);
+                        //relation = ConnectionsHandler.CheckParent(out possibleComplexRel);
+                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckChild(out possibleComplexRel);
+                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckSibling(out possibleComplexRel);
+                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckSpouse(out possibleComplexRel);
+                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckParentSibling(out possibleComplexRel);
+                        //if (!relation.HasValue) relation = eRel.FarRel;
 
+                        if (relation == eRel.FarRel) FarRelConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
 
-                        if (relation.HasValue)
-                        {
-                            //connection for person
-                            if (!ConnExists(person, relatedConnection.RelatedPerson, relation.Value, ref newConnections))
-                            {
-                                var newConn = new ConnectionDTO(person.DTO, relatedConnection.RelatedPerson.DTO, relation, possibleComplexRel);
-                                if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
-                                newConnections.Add(newConn);
-                                person.AddConnection(new ConnectionViewModel(newConn));
-                            }
-
-                            //connection for related
-                            relation = RelationshipInfo.Opposite(relation.Value, person.Gender.Value);
-                            if (possibleComplexRel.HasValue) possibleComplexRel = RelationshipInfo.Opposite(possibleComplexRel.Value, person.Gender.Value);
-                            if (!ConnExists(relatedConnection.RelatedPerson, person, relation.Value, ref newConnections))
-                            {
-                                var newConn = new ConnectionDTO(relatedConnection.RelatedPerson.DTO, person.DTO, relation, possibleComplexRel);
-                                if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
-                                newConnections.Add(newConn);
-                                relatedConnection.RelatedPerson.AddConnection(new ConnectionViewModel(newConn));
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"Unable to find connection between target id [{person.Id}] and related id [{relatedConnection.TargetPerson.Id}]");
-                        }
+                        ConnectionsHandler.ConnectionBetween(person.DTO, relatedConnection.RelatedPerson.DTO, relation.Value, 
+                            ref newConnections, possibleComplexRel, ref possibleComplex_debug);
+                        //connection for person
+                        //if (!ConnExists(person, relatedConnection.RelatedPerson, relation.Value, ref newConnections))
+                        //{
+                        //    var newConn = new ConnectionDTO(person.DTO, relatedConnection.RelatedPerson.DTO, relation, possibleComplexRel);
+                        //    if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
+                        //    newConnections.Add(newConn);
+                        //    person.AddConnection(new ConnectionViewModel(newConn));
+                        //}
+                        
+                        ConnectionsHandler.ConnectionBetween(relatedConnection.RelatedPerson.DTO, person.DTO, relation.Value, 
+                            ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
+                        //connection for related
+                        //relation = RelationshipInfo.Opposite(relation.Value, person.Gender.Value);
+                        //if (possibleComplexRel.HasValue) possibleComplexRel = RelationshipInfo.Opposite(possibleComplexRel.Value, person.Gender.Value);
+                        //if (!ConnExists(relatedConnection.RelatedPerson, person, relation.Value, ref newConnections))
+                        //{
+                        //    var newConn = new ConnectionDTO(relatedConnection.RelatedPerson.DTO, person.DTO, relation, possibleComplexRel);
+                        //    if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
+                        //    newConnections.Add(newConn);
+                        //    relatedConnection.RelatedPerson.AddConnection(new ConnectionViewModel(newConn));
+                        //}
                     }
                 }
                 catch (Exception e)
@@ -128,12 +129,12 @@ namespace FamilyConnections.UI.Models
             return newConnections.ToArray();
         }
 
-        private bool ConnExists(PersonViewModel person, PersonViewModel related, eRel relation, ref List<ConnectionDTO> newConnections)
-        {
-            var existsInNew = newConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
-            var existsInAll = AllConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
-            return existsInNew || existsInAll;
-        }
+        //private bool ConnExists(PersonViewModel person, PersonViewModel related, eRel relation, ref List<ConnectionDTO> newConnections)
+        //{
+        //    var existsInNew = newConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
+        //    var existsInAll = AllConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
+        //    return existsInNew || existsInAll;
+        //}
 
         internal void SetCurrentConnections()
         {

@@ -61,6 +61,13 @@ namespace FamilyConnections.Core.DTO
         //}
 
         public List<FlatConnection> FlatConnections { get; set; }
+
+        public void AddConnection(ConnectionDTO newConnection)
+        {
+            newConnection.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
+            FlatConnections.Add(newConnection.Flat);
+        }
+
         //{
         //    get 
         //    {

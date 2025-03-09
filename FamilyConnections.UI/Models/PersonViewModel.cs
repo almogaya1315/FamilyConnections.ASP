@@ -127,8 +127,10 @@ namespace FamilyConnections.UI.Models
 
         internal void AddConnection(ConnectionViewModel newConnection)
         {
-            newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
-            _person.FlatConnections.Add(newConnection.DTO.Flat);
+            //newConnection.DTO.Flat = new FlatConnection(newConnection.TargetPerson.Id, newConnection.RelatedPerson.Id, newConnection.Relationship.Id);
+            //_person.FlatConnections.Add(newConnection.DTO.Flat);
+
+            _person.AddConnection(newConnection.DTO);
         }
 
         //public List<ConnectionViewModel> SetConnections(List<PersonViewModel> persons, ConnectionViewModel newConnection = null)
