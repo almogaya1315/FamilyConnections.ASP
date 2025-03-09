@@ -40,6 +40,11 @@ namespace FamilyConnections.BL.Handlers
                 newConnections.Add(newConn);
                 person.AddConnection(newConn);
             }
+
+            if (!opposite)
+            {
+                ConnectionBetween(relatedPerson, person, relation, ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
+            }
         }
         public static eRel FindRelation(out eRel? possibleComplexRel)
         {

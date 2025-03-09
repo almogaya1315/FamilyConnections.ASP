@@ -59,7 +59,7 @@ namespace FamilyConnections.UI.Models
         public PersonViewModel CurrentPerson { get; set; }
         public ConnectionViewModel CurrentConnection { get; set; }
 
-        internal ConnectionDTO[] CheckAllConnections()
+        internal List<ConnectionDTO> CheckAllConnections()
         {
             var newConnections = new List<ConnectionDTO>();
 
@@ -85,39 +85,14 @@ namespace FamilyConnections.UI.Models
 
                         ConnectionsHandler.InitConnection(personConnection.DTO, relatedConnection.DTO, AllConnections.Select(c => c.DTO));
                         relation = ConnectionsHandler.FindRelation(out possibleComplexRel);
-                        //ConnectionsHandler.SetDTOs(personConnection.DTO, relatedConnection.DTO);
-                        //relation = ConnectionsHandler.CheckParent(out possibleComplexRel);
-                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckChild(out possibleComplexRel);
-                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckSibling(out possibleComplexRel);
-                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckSpouse(out possibleComplexRel);
-                        //if (!relation.HasValue) relation = ConnectionsHandler.CheckParentSibling(out possibleComplexRel);
-                        //if (!relation.HasValue) relation = eRel.FarRel;
 
-                        if (relation == eRel.FarRel) FarRelConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
+                        //if (relation == eRel.FarRel) FarRelConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
 
                         ConnectionsHandler.ConnectionBetween(person.DTO, relatedConnection.RelatedPerson.DTO, relation.Value, 
                             ref newConnections, possibleComplexRel, ref possibleComplex_debug);
-                        //connection for person
-                        //if (!ConnExists(person, relatedConnection.RelatedPerson, relation.Value, ref newConnections))
-                        //{
-                        //    var newConn = new ConnectionDTO(person.DTO, relatedConnection.RelatedPerson.DTO, relation, possibleComplexRel);
-                        //    if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
-                        //    newConnections.Add(newConn);
-                        //    person.AddConnection(new ConnectionViewModel(newConn));
-                        //}
                         
-                        ConnectionsHandler.ConnectionBetween(relatedConnection.RelatedPerson.DTO, person.DTO, relation.Value, 
-                            ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
-                        //connection for related
-                        //relation = RelationshipInfo.Opposite(relation.Value, person.Gender.Value);
-                        //if (possibleComplexRel.HasValue) possibleComplexRel = RelationshipInfo.Opposite(possibleComplexRel.Value, person.Gender.Value);
-                        //if (!ConnExists(relatedConnection.RelatedPerson, person, relation.Value, ref newConnections))
-                        //{
-                        //    var newConn = new ConnectionDTO(relatedConnection.RelatedPerson.DTO, person.DTO, relation, possibleComplexRel);
-                        //    if (possibleComplexRel.HasValue) possibleComplex_debug.Add(newConn);
-                        //    newConnections.Add(newConn);
-                        //    relatedConnection.RelatedPerson.AddConnection(new ConnectionViewModel(newConn));
-                        //}
+                        //ConnectionsHandler.ConnectionBetween(relatedConnection.RelatedPerson.DTO, person.DTO, relation.Value, 
+                        //    ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
                     }
                 }
                 catch (Exception e)
@@ -126,7 +101,7 @@ namespace FamilyConnections.UI.Models
                 }
             }
 
-            return newConnections.ToArray();
+            return newConnections;
         }
 
         //private bool ConnExists(PersonViewModel person, PersonViewModel related, eRel relation, ref List<ConnectionDTO> newConnections)

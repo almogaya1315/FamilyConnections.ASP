@@ -274,8 +274,8 @@ public class HomeController : Controller
         var newConnections = homePage.CheckAllConnections();
 
         _appRepo.AddPerson(newConnection.TargetPerson.DTO);
-        _appRepo.AddConnections(newConnection.DTO);
-        _appRepo.AddConnections(newConnections);
+        newConnections.Add(newConnection.DTO);
+        _appRepo.AddConnections(newConnections.ToArray());
     }
 
     public IActionResult Add(ConnectionViewModel newConnection)
@@ -291,7 +291,7 @@ public class HomeController : Controller
                 newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
                 newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
                 newConnection.TargetPerson.AddConnection(newConnection);
-                //newConnection.TargetPerson.SetConnections(homePage.AllPersons, newConnection);
+                //newConnection.RelatedPerson.AddConnection(newConnection.Opposite());
 
                 UpdatePersistency(homePage, newConnection);
 
