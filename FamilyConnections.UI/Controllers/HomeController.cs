@@ -271,6 +271,8 @@ public class HomeController : Controller
 
     private void Update(HomeViewModel homePage, ConnectionViewModel newConnection)
     {
+        // flow order is critival to valid flow
+
         // fill new connection
         newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
         newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
@@ -296,10 +298,10 @@ public class HomeController : Controller
         var personsDTO = homePage.AllPersons.Select(p => p.DTO).ToList();
         var connectionsDTO = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO);
         homePage.AllConnections = connectionsDTO.Select(c => new ConnectionViewModel(c)).ToList();
-        homePage.SetCurrentConnections();
 
         // update session
         ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
+        homePage.SetCurrentConnections();
         _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
         _httpHandler.ResetSessionValue(eKeys.flatConnections.ToString(), homePage.AllConnections.Select(c => c.DTO.Flat).ToList());
     }
