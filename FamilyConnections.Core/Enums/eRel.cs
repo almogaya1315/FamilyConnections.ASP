@@ -45,7 +45,7 @@ namespace FamilyConnections.Core.Enums
         GreatGrandSon = 32,
 
         //eFarRel
-        FarRel = 33
+        FarRel = 33,
         //Wife_BrotherInLaw = 33,
         //Wife_SisterInLaw = 34,
         //Husband_BrotherInLaw = 35,
@@ -54,6 +54,8 @@ namespace FamilyConnections.Core.Enums
         //Wife_Nephew = 38,
         //Husband_Niece = 39,
         //Husband_Nephew = 40,
+
+        Unknown = 34
     }
 
     public enum eComplexRel

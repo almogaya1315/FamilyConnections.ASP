@@ -63,8 +63,8 @@ namespace FamilyConnections.UI.Models
         {
             var newConnections = new List<ConnectionDTO>();
 
-            var possibleComplex_debug = new List<ConnectionDTO>();
-            var FarRelConnections_debug = new List<(ConnectionDTO Target, ConnectionDTO Related)>();
+            var possibleComplex = new List<ConnectionDTO>();
+            var unknownConnections = new List<(ConnectionDTO Target, ConnectionDTO Related, string farRel_debug, List<eRel> options)>();
 
             // reverse to start with the new added person
             AllPersons.Reverse();
@@ -84,15 +84,10 @@ namespace FamilyConnections.UI.Models
                         eRel? possibleComplexRel = null;
 
                         ConnectionsHandler.InitConnection(personConnection.DTO, relatedConnection.DTO, AllConnections.Select(c => c.DTO));
-                        relation = ConnectionsHandler.FindRelation(out possibleComplexRel);
-
-                        //if (relation == eRel.FarRel) FarRelConnections_debug.Add((personConnection.DTO, relatedConnection.DTO));
+                        relation = ConnectionsHandler.FindRelation(out possibleComplexRel, ref unknownConnections);
 
                         ConnectionsHandler.ConnectionBetween(person.DTO, relatedConnection.RelatedPerson.DTO, relation.Value, 
-                            ref newConnections, possibleComplexRel, ref possibleComplex_debug);
-                        
-                        //ConnectionsHandler.ConnectionBetween(relatedConnection.RelatedPerson.DTO, person.DTO, relation.Value, 
-                        //    ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
+                            ref newConnections, possibleComplexRel, ref possibleComplex);
                     }
                 }
                 catch (Exception e)

@@ -25,7 +25,7 @@ namespace FamilyConnections.BL.Handlers
         public static void ConnectionBetween(PersonDTO person, PersonDTO relatedPerson, eRel relation,
             ref List<ConnectionDTO> newConnections, eRel? possibleComplexRel, ref List<ConnectionDTO> possibleComplex_debug, bool opposite = false)
         {
-            if (relation == eRel.FarRel) return;
+            if (relation == eRel.FarRel || relation == eRel.Unknown) return;
 
             if (opposite)
             {
@@ -46,14 +46,14 @@ namespace FamilyConnections.BL.Handlers
                 ConnectionBetween(relatedPerson, person, relation, ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
             }
         }
-        public static eRel FindRelation(out eRel? possibleComplexRel)
+        public static eRel FindRelation(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
         {
-            var relation = ConnectionsHandler.CheckParent(out possibleComplexRel);
-            if (!relation.HasValue) relation = ConnectionsHandler.CheckChild(out possibleComplexRel);
-            if (!relation.HasValue) relation = ConnectionsHandler.CheckSibling(out possibleComplexRel);
-            if (!relation.HasValue) relation = ConnectionsHandler.CheckSpouse(out possibleComplexRel);
-            if (!relation.HasValue) relation = ConnectionsHandler.CheckParentSibling(out possibleComplexRel);
-            if (!relation.HasValue) relation = eRel.FarRel;
+            var relation = CheckParent(out possibleComplexRel, ref unknownConnections);
+            if (!relation.HasValue) relation = CheckChild(out possibleComplexRel, ref unknownConnections);
+            if (!relation.HasValue) relation = CheckSibling(out possibleComplexRel, ref unknownConnections);
+            if (!relation.HasValue) relation = CheckSpouse(out possibleComplexRel, ref unknownConnections);
+            if (!relation.HasValue) relation = CheckParentSibling(out possibleComplexRel, ref unknownConnections);
+            if (!relation.HasValue) relation = FarRaletion(ref unknownConnections);
             return relation.Value;
         }
 
@@ -63,12 +63,23 @@ namespace FamilyConnections.BL.Handlers
             var existsInAll = _allConnections.Exists(c => c.TargetPerson.Id == person.Id && c.RelatedPerson.Id == related.Id && c.Relationship.Type == relation);
             return existsInNew || existsInAll;
         }
+        private static string FarRelStr(eRel relation)
+        {
+            return $"{_personConnection.TargetPerson.FullName}'s {_personConnection.Relationship.Type}, {_personConnection.RelatedPerson.FullName}, Has a {_relatedConnection.Relationship.Type}, " +
+                $"So {_relatedConnection.RelatedPerson.FullName} is {_personConnection.TargetPerson.FullName}'s {relation}";
+        }
+        public static eRel FarRaletion(ref List<(ConnectionDTO Target, ConnectionDTO Related, string farRelStr, List<eRel> options)> unknownConnections)
+        {
+            var relation = eRel.FarRel;
+            unknownConnections.Add((_personConnection, _relatedConnection, FarRelStr(relation), new List<eRel> { relation }));
+            return relation;
+        }
         #endregion
 
         #region Has methods
         private static bool HasSpouse(ConnectionDTO connection)
         {
-            return connection.Relationship.Type == eRel.Wife || _relatedConnection.Relationship.Type == eRel.Husband;
+            return connection.Relationship.Type == eRel.Wife || connection.Relationship.Type == eRel.Husband;
         }
         private static bool HasChild(ConnectionDTO connection)
         {
@@ -101,7 +112,7 @@ namespace FamilyConnections.BL.Handlers
         #endregion
 
         #region Relation Checkers
-        private static eRel? CheckParent(out eRel? possibleComplexRel) //, ref List<(ConnectionDTO Target, ConnectionDTO Related)> unknownsConnections_debug)
+        private static eRel? CheckParent(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknown, List<eRel> options)> farRelConnections_debug)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -143,14 +154,13 @@ namespace FamilyConnections.BL.Handlers
                 }
                 else
                 {
-                    //unknownsConnections_debug.Add((_personConnection, _relatedConnection));
-                    relation = eRel.FarRel;
+                    relation = FarRaletion(ref farRelConnections_debug);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckChild(out eRel? possibleComplexRel) //, ref List<(ConnectionDTO Target, ConnectionDTO Related)> unknownsConnections_debug)
+        private static eRel? CheckChild(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -188,14 +198,13 @@ namespace FamilyConnections.BL.Handlers
                 }
                 else
                 {
-                    //unknownsConnections_debug.Add((_personConnection, _relatedConnection));
-                    relation = eRel.FarRel;
+                    relation = FarRaletion(ref unknownConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckSibling(out eRel? possibleComplexRel) //, ref List<(ConnectionDTO Target, ConnectionDTO Related)> unknownsConnections_debug)
+        private static eRel? CheckSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -237,16 +246,27 @@ namespace FamilyConnections.BL.Handlers
                     //HasParentSibling
                     relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
                 }
+                //HasSiblingInLaw
+                else if (HasSiblingInLaw(_relatedConnection))
+                {
+                    //SiblingInLaw
+                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                }
+                //HasSiblingChild
+                else if (HasSiblingChild(_relatedConnection))
+                {
+                    //SiblingChild
+                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                }
                 else
                 {
-                    //unknownsConnections_debug.Add((_personConnection, _relatedConnection));
-                    relation = eRel.FarRel;
+                    relation = FarRaletion(ref unknownConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckSpouse(out eRel? possibleComplexRel) //, ref List<(ConnectionDTO Target, ConnectionDTO Related)> unknownsConnections_debug)
+        private static eRel? CheckSpouse(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -282,14 +302,13 @@ namespace FamilyConnections.BL.Handlers
                 }
                 else
                 {
-                    //unknownsConnections_debug.Add((_personConnection, _relatedConnection));
-                    relation = eRel.FarRel;
+                    relation = FarRaletion(ref unknownConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckParentSibling(out eRel? possibleComplexRel) //, ref List<(ConnectionDTO Target, ConnectionDTO Related)> unknownsConnections_debug)
+        private static eRel? CheckParentSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -315,10 +334,22 @@ namespace FamilyConnections.BL.Handlers
                     //Parent
                     relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
                 }
+                //HasSiblingInLaw
+                else if (HasSiblingInLaw(_relatedConnection))
+                {
+                    //ParentSibling
+                    var relation1 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    var farRelStr1 = FarRelStr(relation1);
+                    //Parent
+                    var relation2 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    var farRelStr2 = FarRelStr(relation2);
+                    var to = $"{_relatedConnection.RelatedPerson.FullName} to {_personConnection.TargetPerson.FullName}";
+                    unknownConnections.Add((_personConnection, _relatedConnection, $"{to}, {relation1}{Environment.NewLine}{relation2}", new List<eRel> { relation1, relation2 }));
+                    relation = eRel.Unknown;
+                }
                 else
                 {
-                    //unknownsConnections_debug.Add((_personConnection, _relatedConnection));
-                    relation = eRel.FarRel;
+                    relation = FarRaletion(ref unknownConnections);
                 }
             }
 
