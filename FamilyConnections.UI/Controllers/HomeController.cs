@@ -296,6 +296,12 @@ public class HomeController : Controller
         var personsDTO = homePage.AllPersons.Select(p => p.DTO).ToList();
         var connectionsDTO = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO);
         homePage.AllConnections = connectionsDTO.Select(c => new ConnectionViewModel(c)).ToList();
+        homePage.SetCurrentConnections();
+
+        // update session
+        ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
+        _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
+        _httpHandler.ResetSessionValue(eKeys.flatConnections.ToString(), homePage.AllConnections.Select(c => c.DTO.Flat).ToList());
     }
 
     public IActionResult Add(ConnectionViewModel newConnection)
@@ -309,12 +315,6 @@ public class HomeController : Controller
             if (ValidateParameters(newConnection))
             {
                 Update(homePage, newConnection);
-
-                ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
-                homePage.SetCurrentConnections();
-                _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
-                _httpHandler.ResetSessionValue(eKeys.flatConnections.ToString(), homePage.AllConnections.Select(c => c.DTO.Flat).ToList());
-
                 return View("Index", homePage);
             }
             else
