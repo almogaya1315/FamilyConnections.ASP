@@ -89,5 +89,10 @@ namespace FamilyConnections.UI.Models
         {
             return $"{_connection.RelatedPerson.FullName} is {_connection.TargetPerson.FullName}'s {Relationship.Type}";
         }
+
+        internal ConnectionViewModel Opposite()
+        {
+            return new ConnectionViewModel(RelatedPerson, TargetPerson, RelationshipInfo.Opposite(Relationship.Type.Value, RelatedPerson.Gender.Value));
+        }
     }
 }

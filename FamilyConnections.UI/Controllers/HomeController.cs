@@ -267,15 +267,35 @@ public class HomeController : Controller
         ViewBag.Genders = homePage.Genders;
     }
 
-    private void UpdatePersistency(HomeViewModel homePage, ConnectionViewModel newConnection)
+    
+
+    private void Update(HomeViewModel homePage, ConnectionViewModel newConnection)
     {
+        // fill new connection
+        newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
+        newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
+        newConnection.TargetPerson.AddConnection(newConnection);
+        newConnection.RelatedPerson = homePage.AllPersons.Find(p => p.Id == newConnection.RelatedPerson.Id);
+
+        // calc other connections
         homePage.AllPersons.Add(newConnection.TargetPerson);
-        homePage.AllConnections.Add(newConnection);
         var newConnections = homePage.CheckAllConnections();
 
-        _appRepo.AddPerson(newConnection.TargetPerson.DTO);
+        // update cache
+        homePage.AllConnections.Add(newConnection);
+        var oppositeConn = newConnection.Opposite();
+        homePage.AllConnections.Add(oppositeConn);
         newConnections.Add(newConnection.DTO);
+        newConnections.Add(oppositeConn.DTO);
+
+        // update text files
+        _appRepo.AddPerson(newConnection.TargetPerson.DTO);
         _appRepo.AddConnections(newConnections.ToArray());
+
+        // reload
+        var personsDTO = homePage.AllPersons.Select(p => p.DTO).ToList();
+        var connectionsDTO = _appRepo.GetConnections(out List<FlatConnection> connectionsFlat, personsDTO);
+        homePage.AllConnections = connectionsDTO.Select(c => new ConnectionViewModel(c)).ToList();
     }
 
     public IActionResult Add(ConnectionViewModel newConnection)
@@ -288,16 +308,12 @@ public class HomeController : Controller
         {
             if (ValidateParameters(newConnection))
             {
-                newConnection.TargetPerson.Id = homePage.AllPersons.Max(p => p.Id) + 1;
-                newConnection.TargetPerson.PlaceOfBirth = "Israel"; // handled by static data manager -> _FamConnContext
-                newConnection.TargetPerson.AddConnection(newConnection);
-                //newConnection.RelatedPerson.AddConnection(newConnection.Opposite());
-
-                UpdatePersistency(homePage, newConnection);
+                Update(homePage, newConnection);
 
                 ViewData["currentPerson"] = homePage.CurrentPerson = newConnection.TargetPerson;
                 homePage.SetCurrentConnections();
                 _httpHandler.ResetSessionValue(eKeys.allPersons.ToString(), homePage.AllPersons);
+                _httpHandler.ResetSessionValue(eKeys.flatConnections.ToString(), homePage.AllConnections.Select(c => c.DTO.Flat).ToList());
 
                 return View("Index", homePage);
             }

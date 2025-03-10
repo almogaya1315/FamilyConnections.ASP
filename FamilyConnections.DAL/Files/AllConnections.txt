@@ -17,3 +17,4 @@
 {"TargetId":5,"RelatedId":4,"RelationshipId":11}
 {"TargetId":4,"RelatedId":5,"RelationshipId":8}
 {"TargetId":5,"RelatedId":2,"RelationshipId":2}
+{"TargetId":2,"RelatedId":5,"RelationshipId":2}
