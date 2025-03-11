@@ -55,7 +55,8 @@ namespace FamilyConnections.Core.Enums
         //Husband_Niece = 39,
         //Husband_Nephew = 40,
 
-        Unknown = 34
+        Undecided = 34,
+        //Unknown = 35
     }
 
     public enum eComplexRel

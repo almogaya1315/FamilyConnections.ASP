@@ -64,7 +64,7 @@ namespace FamilyConnections.UI.Models
             var newConnections = new List<ConnectionDTO>();
 
             var possibleComplex = new List<ConnectionDTO>();
-            var unknownConnections = new List<(ConnectionDTO Target, ConnectionDTO Related, string farRel_debug, List<eRel> options)>();
+            var undecidedConnections = new List<(ConnectionDTO Target, ConnectionDTO Related, string farRel_debug, List<eRel> options)>();
 
             // reverse to start with the new added person
             AllPersons.Reverse();
@@ -84,7 +84,7 @@ namespace FamilyConnections.UI.Models
                         eRel? possibleComplexRel = null;
 
                         ConnectionsHandler.InitConnection(personConnection.DTO, relatedConnection.DTO, AllConnections.Select(c => c.DTO));
-                        relation = ConnectionsHandler.FindRelation(out possibleComplexRel, ref unknownConnections);
+                        relation = ConnectionsHandler.FindRelation(out possibleComplexRel, ref undecidedConnections);
 
                         ConnectionsHandler.ConnectionBetween(person.DTO, relatedConnection.RelatedPerson.DTO, relation.Value, 
                             ref newConnections, possibleComplexRel, ref possibleComplex);

@@ -25,7 +25,7 @@ namespace FamilyConnections.BL.Handlers
         public static void ConnectionBetween(PersonDTO person, PersonDTO relatedPerson, eRel relation,
             ref List<ConnectionDTO> newConnections, eRel? possibleComplexRel, ref List<ConnectionDTO> possibleComplex_debug, bool opposite = false)
         {
-            if (relation == eRel.FarRel || relation == eRel.Unknown) return;
+            if (relation == eRel.FarRel || relation == eRel.Undecided) return;
 
             if (opposite)
             {
@@ -46,14 +46,15 @@ namespace FamilyConnections.BL.Handlers
                 ConnectionBetween(relatedPerson, person, relation, ref newConnections, possibleComplexRel, ref possibleComplex_debug, opposite: true);
             }
         }
-        public static eRel FindRelation(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
+        public static eRel FindRelation(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
-            var relation = CheckParent(out possibleComplexRel, ref unknownConnections);
-            if (!relation.HasValue) relation = CheckChild(out possibleComplexRel, ref unknownConnections);
-            if (!relation.HasValue) relation = CheckSibling(out possibleComplexRel, ref unknownConnections);
-            if (!relation.HasValue) relation = CheckSpouse(out possibleComplexRel, ref unknownConnections);
-            if (!relation.HasValue) relation = CheckParentSibling(out possibleComplexRel, ref unknownConnections);
-            if (!relation.HasValue) relation = FarRaletion(ref unknownConnections);
+            var relation = CheckParent(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = CheckChild(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = CheckSibling(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = CheckSpouse(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = CheckParentSibling(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = CheckSiblingInLaw(out possibleComplexRel, ref undecidedConnections);
+            if (!relation.HasValue) relation = FarRelation(ref undecidedConnections);
             return relation.Value;
         }
 
@@ -68,11 +69,22 @@ namespace FamilyConnections.BL.Handlers
             return $"{_personConnection.TargetPerson.FullName}'s {_personConnection.Relationship.Type}, {_personConnection.RelatedPerson.FullName}, Has a {_relatedConnection.Relationship.Type}, " +
                 $"So {_relatedConnection.RelatedPerson.FullName} is {_personConnection.TargetPerson.FullName}'s {relation}";
         }
-        public static eRel FarRaletion(ref List<(ConnectionDTO Target, ConnectionDTO Related, string farRelStr, List<eRel> options)> unknownConnections)
+        public static eRel FarRelation(ref List<(ConnectionDTO Target, ConnectionDTO Related, string farRelStr, List<eRel> options)> undecidedConnections)
         {
             var relation = eRel.FarRel;
-            unknownConnections.Add((_personConnection, _relatedConnection, FarRelStr(relation), new List<eRel> { relation }));
+            undecidedConnections.Add((_personConnection, _relatedConnection, FarRelStr(relation), new List<eRel> { relation }));
             return relation;
+        }
+        private static eRel UndecidedRelation((eRel Female, eRel Male) rel1, (eRel Female, eRel Male) rel2, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
+        {
+            var relation1 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? rel1.Female : rel1.Male;
+            var farRelStr1 = FarRelStr(relation1);
+            var relation2 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? rel2.Female : rel2.Male;
+            var farRelStr2 = FarRelStr(relation2);
+
+            var to = $"{_relatedConnection.RelatedPerson.FullName} to {_personConnection.TargetPerson.FullName}";
+            undecidedConnections.Add((_personConnection, _relatedConnection, $"{to}, {relation1}{Environment.NewLine}{relation2}", new List<eRel> { relation1, relation2 }));
+            return eRel.Undecided;
         }
         #endregion
 
@@ -93,10 +105,6 @@ namespace FamilyConnections.BL.Handlers
         {
             return connection.Relationship.Type == eRel.Sister || connection.Relationship.Type == eRel.Brother;
         }
-        private static bool HasSpouseInLaw(ConnectionDTO connection)
-        {
-            return connection.Relationship.Type == eRel.SisterInLaw || connection.Relationship.Type == eRel.BrotherInLaw;
-        }
         private static bool HasSiblingChild(ConnectionDTO connection)
         {
             return connection.Relationship.Type == eRel.Niece || connection.Relationship.Type == eRel.Nephew;
@@ -111,100 +119,161 @@ namespace FamilyConnections.BL.Handlers
         }
         #endregion
 
+        #region Is methods
+        private static eRel IsGrandParent()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.GrandMother : eRel.GrandFather;
+        }
+        private static eRel IsSibling()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Sister : eRel.Brother;
+        }
+        private static eRel IsParentSibling()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+        }
+        private static eRel IsParent()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+        }
+        private static eRel IsStepParent()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
+        }
+        private static eRel IsSiblingChild()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+        }
+        private static eRel IsSiblingInLaw()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+        }
+        private static eRel IsChild()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
+        }
+        private static eRel IsStepChild()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
+        }
+        private static eRel IsParentInLaw()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.MotherInLaw : eRel.FatherInLaw;
+        }
+        private static eRel IsStepSibling()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepSister : eRel.StepBrother;
+        }
+        private static eRel IsChildInLaw()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.DaughterInLaw : eRel.SonInLaw;
+        }
+        private static eRel IsSpouse()
+        {
+            return _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Wife : eRel.Husband;
+        }
+        #endregion
+
         #region Relation Checkers
-        private static eRel? CheckParent(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknown, List<eRel> options)> farRelConnections_debug)
+        private static eRel? CheckParent(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
 
-            //person's Parent(Mother, Father)
+            //relation = HasParent(_personConnection) ?
+            //    (
+            //        HasParent(_relatedConnection) ? IsGrandParent() : 
+            //        (HasChild(_relatedConnection) ? IsSibling() : 
+            //        (HasSibling(_relatedConnection) || HasSiblingInLaw(_relatedConnection) ? IsParentSibling() : 
+            //        (HasSpouse(_relatedConnection) ? IsParent() : 
+            //        FarRelation(ref undecidedConnections))))
+            //    ) : relation;
+
+            //person's Parent
             if (HasParent(_personConnection))
             {
                 //HasParent
                 if (HasParent(_relatedConnection))
                 {
-                    //GrandParent(GrandMother, GarndFather)
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.GrandMother : eRel.GrandFather;
+                    //IsGrandParent
+                    relation = IsGrandParent();
                 }
                 //HasChild
                 else if (HasChild(_relatedConnection))
                 {
-                    //Sibling(Sister, Brother)
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Sister : eRel.Brother;
+                    //IsSibling
+                    relation = IsSibling();
                 }
-                //HasSibling
-                else if (HasSibling(_relatedConnection))
+                //HasSibling //HasSiblingInLaw
+                else if (HasSibling(_relatedConnection) || HasSiblingInLaw(_relatedConnection))
                 {
-                    //ParentSibling(Aunt, Uncle)
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    //IsParentSibling
+                    relation = IsParentSibling();
                 }
                 //HasSpouse
                 else if (HasSpouse(_relatedConnection))
                 {
-                    //Parent
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                    //StepParent
-                    possibleComplexRel = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
-                }
-                //HasSiblingInLaw
-                else if (HasSiblingInLaw(_relatedConnection))
-                {
-                    //Sibling
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    //IsParent
+                    relation = IsParent();
+                    //IsStepParent
+                    possibleComplexRel = IsStepParent();
                 }
                 else
                 {
-                    relation = FarRaletion(ref farRelConnections_debug);
+                    //FarRelation
+                    relation = FarRelation(ref undecidedConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckChild(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
+        private static eRel? CheckChild(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
 
-            //person's Child(Daughter, Son)
+            //person's Child
             if (HasChild(_personConnection))
             {
                 //HasParent
                 if (HasParent(_relatedConnection))
                 {
-                    //Spouse(Wife, Husband)
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Wife : eRel.Husband;
-                    //ExPartner
+                    //IsSpouse
+                    relation = IsSpouse(); 
+                    //IsExPartner
                     possibleComplexRel = eRel.ExPartner;
                 }
                 //HasChild
                 else if (HasChild(_relatedConnection))
                 {
-                    //GrandChild
+                    //IsGrandChild
                     relation = eRel.GrandChild;
                 }
                 //HasSibling
                 else if (HasSibling(_relatedConnection))
                 {
-                    //Child
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
-                    //StepChild
-                    possibleComplexRel = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
+                    //IsChild
+                    relation = IsChild();
+                    //IsStepChild
+                    possibleComplexRel = IsStepChild();
                 }
                 //HasSpouse
                 else if (HasSpouse(_relatedConnection))
                 {
-                    //ChildInLaw
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.DaughterInLaw : eRel.SonInLaw;
+                    //IsChildInLaw
+                    relation = IsChildInLaw(); 
                 }
                 else
                 {
-                    relation = FarRaletion(ref unknownConnections);
+                    //FarRelation
+                    relation = FarRelation(ref undecidedConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
+
+        private static eRel? CheckSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -215,58 +284,60 @@ namespace FamilyConnections.BL.Handlers
                 //HasParent
                 if (HasParent(_relatedConnection))
                 {
-                    //Parent
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                    //StepParent
-                    possibleComplexRel = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepMother : eRel.StepFather;
+                    //IsParent
+                    relation = IsParent();
+                    //IsStepParent
+                    possibleComplexRel = IsStepParent(); 
                 }
                 //HasChild
                 else if (HasChild(_relatedConnection))
                 {
-                    //SiblingChild(Niece, Nephew)
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                    //IsSiblingChild
+                    relation = IsSiblingChild(); 
                 }
                 //HasSibling
                 else if (HasSibling(_relatedConnection))
                 {
-                    //Sibling
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Sister : eRel.Brother;
-                    //StepSibling
-                    possibleComplexRel = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                    //IsSibling
+                    relation = IsSibling(); 
+                    //IsStepSibling
+                    possibleComplexRel = IsStepSibling();  
                 }
                 //HasSpouse
                 else if (HasSpouse(_relatedConnection))
                 {
-                    //SiblingInLaw
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                    //IsSiblingInLaw
+                    relation = IsSiblingInLaw(); 
                 }
                 //HasParentSibling
                 else if (HasParentSibling(_relatedConnection))
                 {
-                    //HasParentSibling
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
+                    //IsParentSibling
+                    relation = IsParentSibling();
                 }
                 //HasSiblingInLaw
                 else if (HasSiblingInLaw(_relatedConnection))
                 {
-                    //SiblingInLaw
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
+                    //IsSiblingInLaw
+                    relation = IsSiblingInLaw(); 
                 }
                 //HasSiblingChild
                 else if (HasSiblingChild(_relatedConnection))
                 {
-                    //SiblingChild
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Niece : eRel.Nephew;
+                    //IsSiblingChild
+                    relation = IsSiblingChild(); 
                 }
                 else
                 {
-                    relation = FarRaletion(ref unknownConnections);
+                    //FarRelation
+                    relation = FarRelation(ref undecidedConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckSpouse(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
+
+        private static eRel? CheckSpouse(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -277,38 +348,34 @@ namespace FamilyConnections.BL.Handlers
                 //HasParent
                 if (HasParent(_relatedConnection))
                 {
-                    //ParentInLaw
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.MotherInLaw : eRel.FatherInLaw;
+                    //IsParentInLaw
+                    relation = IsParentInLaw(); 
                 }
                 //HasChild
                 else if (HasChild(_relatedConnection))
                 {
-                    //Child
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Daughter : eRel.Son;
-                    //StepChild
-                    possibleComplexRel = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.StepDaughter : eRel.StepSon;
+                    //IsChild
+                    relation = IsChild();
+                    //IsStepChild
+                    possibleComplexRel = IsStepChild(); 
                 }
                 //HasSibling
                 else if (HasSibling(_relatedConnection))
                 {
-                    //SiblingInLaw
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.SisterInLaw : eRel.BrotherInLaw;
-                }
-                //HasSpouseInLaw //HasSiblingChild
-                else if (HasSpouseInLaw(_relatedConnection) || HasSiblingChild(_relatedConnection))
-                {
-                    //SpouseInLaw //SpouseSiblingChild
-                    relation = eRel.FarRel;
+                    //IsSiblingInLaw
+                    relation = IsSiblingInLaw();
                 }
                 else
                 {
-                    relation = FarRaletion(ref unknownConnections);
+                    //FarRelation
+                    relation = FarRelation(ref undecidedConnections);
                 }
             }
 
             return relation;
         }
-        private static eRel? CheckParentSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string unknownStr, List<eRel> options)> unknownConnections)
+
+        private static eRel? CheckParentSibling(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
         {
             eRel? relation = null;
             possibleComplexRel = null;
@@ -319,38 +386,68 @@ namespace FamilyConnections.BL.Handlers
                 //HasParent
                 if (HasParent(_relatedConnection))
                 {
-                    //GrandParent
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.GrandMother : eRel.GrandFather;
+                    //IsGrandParent
+                    relation = IsGrandParent();
                 }
                 //HasChild
                 else if (HasChild(_relatedConnection))
                 {
-                    //Cousin
+                    //IsCousin
                     relation = eRel.Cousin;
                 }
                 //HasSibling
                 else if (HasSibling(_relatedConnection))
                 {
-                    //Parent
-                    relation = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
+                    //IsParent
+                    relation = IsParent();
+                }
+                //HasSiblingChild
+                else if (HasSiblingChild(_relatedConnection))
+                {
+                    //IsSiblingChild
+                    relation = IsSiblingChild();
+                }
+                //HasSpouse
+                else if (HasSpouse(_relatedConnection))
+                {
+                    //IsParentSibling
+                    relation = IsParentSibling();
                 }
                 //HasSiblingInLaw
                 else if (HasSiblingInLaw(_relatedConnection))
                 {
-                    //ParentSibling
-                    var relation1 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Aunt : eRel.Uncle;
-                    var farRelStr1 = FarRelStr(relation1);
-                    //Parent
-                    var relation2 = _relatedConnection.RelatedPerson.Gender == eGender.Female ? eRel.Mother : eRel.Father;
-                    var farRelStr2 = FarRelStr(relation2);
-                    var to = $"{_relatedConnection.RelatedPerson.FullName} to {_personConnection.TargetPerson.FullName}";
-                    unknownConnections.Add((_personConnection, _relatedConnection, $"{to}, {relation1}{Environment.NewLine}{relation2}", new List<eRel> { relation1, relation2 }));
-                    relation = eRel.Unknown;
+                    //ParentSibling OR Parent -> Undecided
+                    relation = UndecidedRelation((eRel.Aunt, eRel.Uncle), (eRel.Mother, eRel.Father), ref undecidedConnections);
                 }
                 else
                 {
-                    relation = FarRaletion(ref unknownConnections);
+                    //FarRelation
+                    relation = FarRelation(ref undecidedConnections);
                 }
+            }
+
+            return relation;
+        }
+
+        private static eRel? CheckSiblingInLaw(out eRel? possibleComplexRel, ref List<(ConnectionDTO Target, ConnectionDTO Related, string undecidedStr, List<eRel> options)> undecidedConnections)
+        {
+            eRel? relation = null;
+            possibleComplexRel = null;
+
+            //person's SiblingInLaw
+            if (HasSiblingInLaw(_personConnection))
+            {
+                //HasParentSibling
+                if (HasParentSibling(_relatedConnection))
+                {
+                    //IsParentSibling
+                    relation = IsParentSibling();
+                }
+            }
+            else
+            {
+                //FarRelation
+                relation = FarRelation(ref undecidedConnections);
             }
 
             return relation;
